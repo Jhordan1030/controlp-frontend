@@ -1,7 +1,7 @@
 // ==================== src/utils/helpers.js ====================
 export const formatDate = (dateString) => {
     const date = new Date(dateString);
-    return new Intl.DateFormat('es-EC', {
+    return new Intl.DateTimeFormat('es-EC', {
         year: 'numeric',
         month: 'long',
         day: 'numeric'
@@ -10,7 +10,7 @@ export const formatDate = (dateString) => {
 
 export const formatDateShort = (dateString) => {
     const date = new Date(dateString);
-    return new Intl.DateFormat('es-EC', {
+    return new Intl.DateTimeFormat('es-EC', {
         year: 'numeric',
         month: '2-digit',
         day: '2-digit'
@@ -19,7 +19,7 @@ export const formatDateShort = (dateString) => {
 
 export const formatTime = (dateString) => {
     const date = new Date(dateString);
-    return new Intl.DateFormat('es-EC', {
+    return new Intl.DateTimeFormat('es-EC', {
         hour: '2-digit',
         minute: '2-digit'
     }).format(date);

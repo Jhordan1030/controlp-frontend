@@ -1,18 +1,25 @@
 // ==================== src/pages/Login.jsx ====================
 import React, { useState } from 'react';
+import { useNavigate, Navigate } from 'react-router-dom';
 import { BookOpen, Mail, Lock, AlertCircle, Loader } from 'lucide-react';
-import { authAPI } from '../services/api';
 import { useAuth } from '../context/AuthContext';
-import { handleApiError } from '../utils/helpers';
+import axios from 'axios';
 
 export default function Login() {
-    const { login } = useAuth();
+    const { user, login } = useAuth();
+    const navigate = useNavigate();
+
     const [formData, setFormData] = useState({
         email: '',
         password: ''
     });
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
+
+    // Si ya está autenticado, redirigir según su rol
+    if (user) {
+        return <Navigate to="/" replace />;
+    }
 
     const handleChange = (e) => {
         setFormData({
@@ -28,15 +35,50 @@ export default function Login() {
         setLoading(true);
 
         try {
-            const data = await authAPI.login(formData.email, formData.password);
+            // Llamada DIRECTA a la API usando axios
+            const response = await axios.post(
+                'http://localhost:3000/api/v1/auth/login',
+                formData  // Ya contiene email y password
+            );
 
-            if (data.success) {
-                login(data.token, data.usuario);
+            console.log('✅ Respuesta del servidor:', response.data);
+
+            if (response.data.success) {
+                // ¡CORREGIDO! Acceder directamente a response.data
+                const { token, usuario } = response.data;  // No es response.data.data
+
+                console.log('🔑 Token recibido:', token);
+                console.log('👤 Usuario recibido:', usuario);
+
+                // Usar la función login del contexto
+                login(token, usuario);
+
+                // Redirigir a la página principal
+                navigate('/', { replace: true });
             } else {
-                setError(data.error || 'Error al iniciar sesión');
+                setError(response.data.error || 'Error al iniciar sesión');
             }
         } catch (err) {
-            setError(handleApiError(err));
+            // Manejar errores de axios
+            let errorMessage = 'Error al iniciar sesión';
+
+            if (err.response) {
+                // El servidor respondió con un error
+                console.error('❌ Error del servidor:', err.response.data);
+                errorMessage = err.response.data?.error ||
+                    err.response.data?.message ||
+                    `Error ${err.response.status}`;
+            } else if (err.request) {
+                // La solicitud fue hecha pero no se recibió respuesta
+                console.error('❌ No hay respuesta del servidor');
+                errorMessage = 'No se pudo conectar con el servidor';
+            } else {
+                // Error en la configuración de la solicitud
+                console.error('❌ Error en la solicitud:', err.message);
+                errorMessage = err.message || 'Error de configuración';
+            }
+
+            setError(errorMessage);
         } finally {
             setLoading(false);
         }
@@ -164,7 +206,8 @@ export default function Login() {
                         <div className="mt-3 space-y-1 text-xs text-gray-500">
                             <p>Admin: admin@controlpracticas.com</p>
                             <p>Estudiante: juan.perez@ejemplo.com</p>
-                            <p className="text-gray-400">Contraseñas en los botones de arriba</p>
+                            <p>Contraseña: <span className="font-mono">Admin123!</span> para admin</p>
+                            <p>Contraseña: <span className="font-mono">Estudiante123!</span> para estudiante</p>
                         </div>
                     </div>
                 </div>

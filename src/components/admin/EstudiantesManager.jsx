@@ -1,11 +1,9 @@
-// ==================== src/components/admin/EstudiantesManager.jsx ====================
 import React, { useState, useEffect } from 'react';
-import { Plus, Users, Eye } from 'lucide-react';
+import { Plus, Users } from 'lucide-react';
 import Card from '../common/Card';
 import Modal from '../common/Modal';
 import LoadingSpinner from '../common/LoadingSpinner';
 import Alert from '../common/Alert';
-import ProgressBar from '../common/ProgressBar';
 import { adminAPI } from '../../services/api';
 import { handleApiError } from '../../utils/helpers';
 
@@ -129,13 +127,13 @@ export default function EstudiantesManager() {
                             </div>
 
                             <div className="flex items-center gap-3">
-                <span className={`px-3 py-1 rounded-full text-xs font-medium ${
-                    estudiante.activo
-                        ? 'bg-green-100 text-green-700'
-                        : 'bg-red-100 text-red-700'
-                }`}>
-                  {estudiante.activo ? 'Activo' : 'Inactivo'}
-                </span>
+                                <span className={`px-3 py-1 rounded-full text-xs font-medium ${
+                                    estudiante.activo
+                                        ? 'bg-green-100 text-green-700'
+                                        : 'bg-red-100 text-red-700'
+                                }`}>
+                                    {estudiante.activo ? 'Activo' : 'Inactivo'}
+                                </span>
                             </div>
                         </div>
                     </Card>

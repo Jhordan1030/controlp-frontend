@@ -1,4 +1,3 @@
-// ==================== src/components/admin/PeriodosManager.jsx ====================
 import React, { useState, useEffect } from 'react';
 import { Plus, Calendar } from 'lucide-react';
 import Card from '../common/Card';
@@ -129,8 +128,8 @@ export default function PeriodosManager() {
                                 <div className="flex justify-between">
                                     <span className="text-gray-600">Horas:</span>
                                     <span className="font-semibold text-indigo-600">
-                    {periodo.horas_totales_requeridas}h
-                  </span>
+                                        {periodo.horas_totales_requeridas}h
+                                    </span>
                                 </div>
                             </div>
                         </div>
