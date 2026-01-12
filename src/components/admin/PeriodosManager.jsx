@@ -165,7 +165,7 @@ export default function PeriodosManager() {
                                 <div>
                                     <h3 className="font-semibold text-gray-900">{periodo.nombre}</h3>
                                     <p className="text-sm text-gray-600">
-                                        {periodo.universidad?.nombre || 'Sin universidad'}
+                                        {universidades.find(u => u.id === periodo.universidad_id)?.nombre || 'Sin universidad'}
                                     </p>
                                 </div>
                             </div>
@@ -185,6 +185,25 @@ export default function PeriodosManager() {
                                         {periodo.horas_totales_requeridas}h
                                     </span>
                                 </div>
+                            </div>
+
+                            <div className="flex gap-2 justify-end pt-2">
+                                <button
+                                    onClick={() => handleVerEstudiantes(periodo)}
+                                    className="p-2 text-indigo-600 hover:bg-indigo-50 rounded-lg transition flex items-center gap-1 text-sm font-medium"
+                                    title="Ver Estudiantes"
+                                >
+                                    <Eye className="w-4 h-4" />
+                                    <span className="hidden md:inline">Ver Estudiantes</span>
+                                </button>
+                                <button
+                                    onClick={() => handleEdit(periodo)}
+                                    className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition flex items-center gap-1 text-sm font-medium"
+                                    title="Editar Periodo"
+                                >
+                                    <Edit2 className="w-4 h-4" />
+                                    <span className="hidden md:inline">Editar</span>
+                                </button>
                             </div>
                         </div>
                     </Card>

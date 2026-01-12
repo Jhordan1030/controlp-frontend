@@ -4,7 +4,7 @@ import { useAuth } from '../../context/AuthContext';
 import { AlertTriangle, Clock } from 'lucide-react';
 
 // Tiempos en milisegundos
-const INACTIVITY_TIME = 5 * 60 * 1000; // 5 minutos de inactividad
+const INACTIVITY_TIME = 1 * 60 * 1000; // 1 minuto de inactividad
 const COUNTDOWN_TIME = 2 * 60 * 1000;  // 2 minutos de cuenta regresiva
 
 export default function AutoLogout() {
