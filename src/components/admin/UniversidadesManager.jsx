@@ -15,6 +15,9 @@ export default function UniversidadesManager() {
     const [nombre, setNombre] = useState('');
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
+    const [isEditing, setIsEditing] = useState(false);
+    const [currentId, setCurrentId] = useState(null);
+    const [activa, setActiva] = useState(true);
 
     useEffect(() => {
         loadUniversidades();
@@ -34,21 +37,30 @@ export default function UniversidadesManager() {
         }
     };
 
-    const handleCreate = async (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
         setError('');
         setSuccess('');
 
         try {
-            const data = await adminAPI.crearUniversidad(nombre);
+            // Fix: Find original name to avoid sending it if unchanged (backend has a bug with unchanged names)
+            const uniOriginal = universidades.find(u => u.id === currentId);
+            const nombreOriginal = uniOriginal ? uniOriginal.nombre : '';
+
+            const data = isEditing
+                ? await adminAPI.actualizarUniversidad(currentId, nombre, activa, nombreOriginal)
+                : await adminAPI.crearUniversidad(nombre);
 
             if (data.success) {
-                setSuccess('Universidad creada exitosamente');
+                setSuccess(isEditing ? 'Universidad actualizada exitosamente' : 'Universidad creada exitosamente');
                 setNombre('');
+                setIsEditing(false);
+                setCurrentId(null);
+                setActiva(true);
                 setShowModal(false);
                 loadUniversidades();
             } else {
-                setError(data.error || 'Error al crear universidad');
+                setError(data.error || 'Error al procesar la solicitud');
             }
         } catch (err) {
             setError(handleApiError(err));
@@ -65,7 +77,12 @@ export default function UniversidadesManager() {
                     <p className="text-gray-600 mt-1">Gestiona las universidades del sistema</p>
                 </div>
                 <button
-                    onClick={() => setShowModal(true)}
+                    onClick={() => {
+                        setIsEditing(false);
+                        setNombre('');
+                        setActiva(true);
+                        setShowModal(true);
+                    }}
                     className="btn-primary flex items-center gap-2"
                 >
                     <Plus className="w-5 h-5" />
@@ -97,19 +114,32 @@ export default function UniversidadesManager() {
                                     </p>
                                 </div>
                             </div>
+                            <button
+                                onClick={() => {
+                                    setIsEditing(true);
+                                    setCurrentId(uni.id);
+                                    setNombre(uni.nombre);
+                                    setActiva(uni.activa);
+                                    setShowModal(true);
+                                }}
+                                className="p-2 text-indigo-600 hover:bg-indigo-50 rounded-lg transition"
+                                title="Editar Universidad"
+                            >
+                                <Edit2 className="w-5 h-5" />
+                            </button>
                         </div>
                     </Card>
                 ))}
             </div>
 
-            {/* Modal crear universidad */}
+            {/* Modal crear/editar universidad */}
             <Modal
                 isOpen={showModal}
                 onClose={() => setShowModal(false)}
-                title="Nueva Universidad"
+                title={isEditing ? 'Editar Universidad' : 'Nueva Universidad'}
                 size="md"
             >
-                <form onSubmit={handleCreate} className="space-y-4">
+                <form onSubmit={handleSubmit} className="space-y-4">
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">
                             Nombre de la Universidad
@@ -124,6 +154,21 @@ export default function UniversidadesManager() {
                         />
                     </div>
 
+                    {isEditing && (
+                        <div className="flex items-center gap-2">
+                            <input
+                                type="checkbox"
+                                id="activa"
+                                checked={activa}
+                                onChange={(e) => setActiva(e.target.checked)}
+                                className="w-4 h-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500"
+                            />
+                            <label htmlFor="activa" className="text-sm font-medium text-gray-700">
+                                Universidad Activa
+                            </label>
+                        </div>
+                    )}
+
                     <div className="flex justify-end gap-3 pt-4">
                         <button
                             type="button"
@@ -133,7 +178,7 @@ export default function UniversidadesManager() {
                             Cancelar
                         </button>
                         <button type="submit" className="btn-primary">
-                            Crear Universidad
+                            {isEditing ? 'Actualizar' : 'Crear'} Universidad
                         </button>
                     </div>
                 </form>

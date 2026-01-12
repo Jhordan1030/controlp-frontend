@@ -66,6 +66,16 @@ export const adminAPI = {
         return data;
     },
 
+    actualizarUniversidad: async (id, nombre, activa, nombreOriginal) => {
+        const payload = { activa };
+        // Solo enviar el nombre si ha cambiado para evitar bug en backend ($ne vs Op.ne)
+        if (nombre && nombre !== nombreOriginal) {
+            payload.nombre = nombre;
+        }
+        const { data } = await api.put(`/admin/universidades/${id}`, payload);
+        return data;
+    },
+
     // Periodos
     getPeriodos: async () => {
         const { data } = await api.get('/admin/periodos');
