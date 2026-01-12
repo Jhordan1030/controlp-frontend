@@ -127,11 +127,10 @@ export default function EstudiantesManager() {
                             </div>
 
                             <div className="flex items-center gap-3">
-                                <span className={`px-3 py-1 rounded-full text-xs font-medium ${
-                                    estudiante.activo
+                                <span className={`px-3 py-1 rounded-full text-xs font-medium ${estudiante.activo
                                         ? 'bg-green-100 text-green-700'
                                         : 'bg-red-100 text-red-700'
-                                }`}>
+                                    }`}>
                                     {estudiante.activo ? 'Activo' : 'Inactivo'}
                                 </span>
                             </div>
@@ -148,7 +147,7 @@ export default function EstudiantesManager() {
                 size="md"
             >
                 <form onSubmit={handleCreate} className="space-y-4">
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-2">
                                 Nombres
