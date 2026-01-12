@@ -27,23 +27,21 @@ export default function AdminPanel() {
     };
 
     return (
-        <div className="min-h-screen bg-gray-50">
+        <div className="min-h-screen bg-gray-50 pt-16">
             <Navbar onMenuClick={() => setSidebarOpen(true)} />
 
-            <div className="flex">
-                <Sidebar
-                    activeTab={activeTab}
-                    setActiveTab={setActiveTab}
-                    isOpen={sidebarOpen}
-                    onClose={() => setSidebarOpen(false)}
-                />
+            <Sidebar
+                activeTab={activeTab}
+                setActiveTab={setActiveTab}
+                isOpen={sidebarOpen}
+                onClose={() => setSidebarOpen(false)}
+            />
 
-                <main className="flex-1 p-4 md:p-6 lg:p-8">
-                    <div className="max-w-7xl mx-auto">
-                        {renderContent()}
-                    </div>
-                </main>
-            </div>
+            <main className="lg:ml-64 p-4 md:p-6 lg:p-8 w-auto">
+                <div className="max-w-7xl mx-auto">
+                    {renderContent()}
+                </div>
+            </main>
         </div>
     );
 }

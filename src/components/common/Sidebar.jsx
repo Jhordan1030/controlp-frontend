@@ -26,7 +26,7 @@ export default function Sidebar({ activeTab, setActiveTab, isOpen, onClose }) {
             {/* Mobile backdrop */}
             {isOpen && (
                 <div
-                    className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"
+                    className="fixed inset-0 bg-black bg-opacity-50 z-[60] lg:hidden"
                     onClick={onClose}
                 ></div>
             )}
@@ -34,13 +34,14 @@ export default function Sidebar({ activeTab, setActiveTab, isOpen, onClose }) {
             {/* Sidebar */}
             <aside
                 className={`
-          fixed lg:static inset-y-0 left-0 z-50
+          fixed top-0 left-0 h-full z-[70] lg:z-30
           w-64 bg-white shadow-xl
           transform transition-transform duration-300 ease-in-out
           ${isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
+          lg:pt-16
         `}
             >
-                <div className="h-full flex flex-col">
+                <div className="h-full flex flex-col overflow-y-auto">
                     {/* Close button (mobile) */}
                     <div className="lg:hidden flex justify-end p-4">
                         <button
@@ -68,9 +69,9 @@ export default function Sidebar({ activeTab, setActiveTab, isOpen, onClose }) {
                     w-full flex items-center gap-3 px-4 py-3 rounded-lg
                     transition-all duration-200
                     ${isActive
-                                        ? 'bg-indigo-600 text-white shadow-lg'
-                                        : 'text-gray-700 hover:bg-gray-100'
-                                    }
+                                            ? 'bg-indigo-600 text-white shadow-lg'
+                                            : 'text-gray-700 hover:bg-gray-100'
+                                        }
                   `}
                                 >
                                     <Icon className="w-5 h-5" />
