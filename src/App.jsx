@@ -6,6 +6,7 @@ import LoadingSpinner from './components/common/LoadingSpinner';
 import Login from './pages/Login';
 import AdminPanel from './pages/AdminPanel';
 import EstudiantePanel from './pages/EstudiantePanel';
+import AutoLogout from './components/common/AutoLogout';
 
 // Componente para rutas protegidas
 function ProtectedRoute({ children, requiredRole }) {
@@ -86,6 +87,7 @@ export default function App() {
     return (
         <Router>
             <AuthProvider>
+                <AutoLogout />
                 <AppRoutes />
             </AuthProvider>
         </Router>

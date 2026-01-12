@@ -12,30 +12,36 @@ export default function AutoLogout() {
     const [showModal, setShowModal] = useState(false);
     const [timeLeft, setTimeLeft] = useState(COUNTDOWN_TIME / 1000);
 
-    // Referencias para manejar los timers sin causar re-renders excesivos
+    // Referencias para manejar los timers y estado sin causar re-renders del efecto
     const inactivityTimerRef = useRef(null);
     const countdownIntervalRef = useRef(null);
+    const showModalRef = useRef(false);
+
+    // Sincronizar ref con estado
+    useEffect(() => {
+        showModalRef.current = showModal;
+    }, [showModal]);
 
     // Función para cerrar sesión real
     const handleLogout = useCallback(() => {
         setShowModal(false);
         logout();
-        window.location.href = '/login'; // Opcional: forzar redirección si logout no lo hace
+        window.location.href = '/login';
     }, [logout]);
 
     // Iniciar cuenta regresiva (Fase 2)
     const startCountdown = useCallback(() => {
-        setShowModal(true);
+        setShowModal(true); // Esto actualizará el ref vía el efecto de arriba
+        // showModalRef.current = true; // Actualización optimista
         setTimeLeft(COUNTDOWN_TIME / 1000);
 
-        // Limpiamos cualquier intervalo previo por seguridad
         if (countdownIntervalRef.current) clearInterval(countdownIntervalRef.current);
 
         countdownIntervalRef.current = setInterval(() => {
             setTimeLeft((prev) => {
                 if (prev <= 1) {
                     clearInterval(countdownIntervalRef.current);
-                    handleLogout(); // Se acabó el tiempo
+                    handleLogout();
                     return 0;
                 }
                 return prev - 1;
@@ -45,37 +51,33 @@ export default function AutoLogout() {
 
     // Reseteamos el timer de inactividad (Fase 1)
     const resetInactivityTimer = useCallback(() => {
-        if (!isAuthenticated) return; // No hacer nada si no está logueado
-        if (showModal) return; // No resetear si ya salió el modal (requiere acción explícita)
+        if (!isAuthenticated) return;
+        // Usamos el ref para no añadir showModal a las dependencias y evitar que el efecto 
+        // principal se reinicie (y limpie el intervalo) cuando se abre el modal.
+        if (showModalRef.current) return;
 
         if (inactivityTimerRef.current) clearTimeout(inactivityTimerRef.current);
 
         inactivityTimerRef.current = setTimeout(() => {
             startCountdown();
         }, INACTIVITY_TIME);
-    }, [isAuthenticated, showModal, startCountdown]);
+    }, [isAuthenticated, startCountdown]); // Quitamos showModal de dependencias
 
     // Manejar la acción de "Seguir conectado"
     const handleStayConnected = () => {
-        // Limpiar cuenta regresiva
         if (countdownIntervalRef.current) clearInterval(countdownIntervalRef.current);
-
         setShowModal(false);
-        resetInactivityTimer(); // Reiniciar ciclo normal
+        resetInactivityTimer();
     };
 
     // Efecto para escuchar eventos globales
     useEffect(() => {
         if (!isAuthenticated) return;
 
-        // Iniciar timer nada más montar o loguearse
         resetInactivityTimer();
 
-        // Eventos a escuchar
         const events = ['mousemove', 'keydown', 'click', 'scroll'];
-
         const handleActivity = () => {
-            // Pequeño throttle o simplemente llamar reset
             resetInactivityTimer();
         };
 
@@ -84,6 +86,10 @@ export default function AutoLogout() {
         return () => {
             events.forEach(event => window.removeEventListener(event, handleActivity));
             if (inactivityTimerRef.current) clearTimeout(inactivityTimerRef.current);
+            // NO limpiamos el intervalo de cuenta regresiva aquí si solo se desmontan los eventos 
+            // (aunque en React estricto o re-renders podría pasar).
+            // Pero como resetInactivityTimer ya no cambia con showModal, este efecto 
+            // NO se debería limpiar al abrir el modal.
             if (countdownIntervalRef.current) clearInterval(countdownIntervalRef.current);
         };
     }, [isAuthenticated, resetInactivityTimer]);
@@ -100,9 +106,6 @@ export default function AutoLogout() {
     return (
         <Modal
             isOpen={showModal}
-            // Evitamos que se pueda cerrar haciendo clic fuera
-            // onClose={() => {}} 
-            // Opcional: si quieres permitir cerrar con X, usa handleStayConnected
             onClose={() => { }}
             title="Inactividad detectada"
             size="md"
