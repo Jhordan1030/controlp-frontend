@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Calendar } from 'lucide-react';
+import { Plus, Calendar, Edit2, Eye, User, GraduationCap } from 'lucide-react';
 import Card from '../common/Card';
 import Modal from '../common/Modal';
 import LoadingSpinner from '../common/LoadingSpinner';
@@ -20,8 +20,15 @@ export default function PeriodosManager() {
         nombre: '',
         fecha_inicio: '',
         fecha_fin: '',
-        horas_totales_requeridas: 200
+        horas_totales_requeridas: 200,
+        activo: true
     });
+
+    const [isEditing, setIsEditing] = useState(false);
+    const [currentId, setCurrentId] = useState(null);
+    const [showEstudiantesModal, setShowEstudiantesModal] = useState(false);
+    const [estudiantes, setEstudiantes] = useState([]);
+    const [selectedPeriodoName, setSelectedPeriodoName] = useState('');
 
     useEffect(() => {
         loadData();
@@ -51,27 +58,71 @@ export default function PeriodosManager() {
         });
     };
 
-    const handleCreate = async (e) => {
+    const resetForm = () => {
+        setFormData({
+            universidad_id: '',
+            nombre: '',
+            fecha_inicio: '',
+            fecha_fin: '',
+            horas_totales_requeridas: 200,
+            activo: true
+        });
+        setIsEditing(false);
+        setCurrentId(null);
+    };
+
+    const handleEdit = (periodo) => {
+        setFormData({
+            universidad_id: periodo.universidad_id,
+            nombre: periodo.nombre,
+            fecha_inicio: periodo.fecha_inicio.split('T')[0],
+            fecha_fin: periodo.fecha_fin.split('T')[0],
+            horas_totales_requeridas: periodo.horas_totales_requeridas,
+            activo: periodo.activo
+        });
+        setIsEditing(true);
+        setCurrentId(periodo.id);
+        setShowModal(true);
+    };
+
+    const handleVerEstudiantes = async (periodo) => {
+        try {
+            setSelectedPeriodoName(periodo.nombre);
+            // Cargar estudiantes si no se tienen o filtrar
+            const data = await adminAPI.getEstudiantes();
+            if (data.success) {
+                // Filtrar estudiantes por periodo si el backend devuelve todos
+                // Asumiendo que el estudiante tiene una propiedad periodo_id o un objeto periodo
+                // Si la API getEstudiantes() no filtra, lo hacemos aquí.
+                // Ajustar según la estructura real de 'estudiante'. 
+                // Suponiendo estudiante.periodo_id o estudiante.Periodo?.id
+                const estudiantesFiltrados = data.estudiantes.filter(est => est.Periodo?.id === periodo.id || est.periodo_id === periodo.id);
+                setEstudiantes(estudiantesFiltrados);
+            }
+            setShowEstudiantesModal(true);
+        } catch (err) {
+            console.error('Error al cargar estudiantes', err);
+            setError('Error al cargar estudiantes del periodo');
+        }
+    };
+
+    const handleSubmit = async (e) => {
         e.preventDefault();
         setError('');
         setSuccess('');
 
         try {
-            const data = await adminAPI.crearPeriodo(formData);
+            const data = isEditing
+                ? await adminAPI.actualizarPeriodo(currentId, formData)
+                : await adminAPI.crearPeriodo(formData);
 
             if (data.success) {
-                setSuccess('Periodo creado exitosamente');
-                setFormData({
-                    universidad_id: '',
-                    nombre: '',
-                    fecha_inicio: '',
-                    fecha_fin: '',
-                    horas_totales_requeridas: 200
-                });
+                setSuccess(isEditing ? 'Periodo actualizado exitosamente' : 'Periodo creado exitosamente');
+                resetForm();
                 setShowModal(false);
                 loadData();
             } else {
-                setError(data.error || 'Error al crear periodo');
+                setError(data.error || 'Error al procesar la solicitud');
             }
         } catch (err) {
             setError(handleApiError(err));
@@ -88,7 +139,10 @@ export default function PeriodosManager() {
                     <p className="text-gray-600 mt-1">Gestiona los periodos de prácticas</p>
                 </div>
                 <button
-                    onClick={() => setShowModal(true)}
+                    onClick={() => {
+                        resetForm();
+                        setShowModal(true);
+                    }}
                     className="btn-primary flex items-center gap-2"
                 >
                     <Plus className="w-5 h-5" />
@@ -137,14 +191,14 @@ export default function PeriodosManager() {
                 ))}
             </div>
 
-            {/* Modal crear periodo */}
+            {/* Modal crear/editar periodo */}
             <Modal
                 isOpen={showModal}
                 onClose={() => setShowModal(false)}
-                title="Nuevo Periodo Académico"
+                title={isEditing ? 'Editar Periodo' : 'Nuevo Periodo Académico'}
                 size="md"
             >
-                <form onSubmit={handleCreate} className="space-y-4">
+                <form onSubmit={handleSubmit} className="space-y-4">
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">
                             Universidad
@@ -234,10 +288,68 @@ export default function PeriodosManager() {
                             Cancelar
                         </button>
                         <button type="submit" className="btn-primary">
-                            Crear Periodo
+                            {isEditing ? 'Actualizar' : 'Crear'} Periodo
                         </button>
                     </div>
                 </form>
+            </Modal>
+
+            {/* Modal ver estudiantes */}
+            <Modal
+                isOpen={showEstudiantesModal}
+                onClose={() => setShowEstudiantesModal(false)}
+                title={`Estudiantes inscritos - ${selectedPeriodoName}`}
+                size="lg"
+            >
+                <div>
+                    {estudiantes.length === 0 ? (
+                        <div className="text-center py-8">
+                            <div className="bg-gray-100 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
+                                <User className="w-8 h-8 text-gray-400" />
+                            </div>
+                            <p className="text-gray-500">No hay estudiantes inscritos en este periodo.</p>
+                        </div>
+                    ) : (
+                        <div className="overflow-x-auto">
+                            <table className="min-w-full divide-y divide-gray-200">
+                                <thead className="bg-gray-50">
+                                    <tr>
+                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Estudiante</th>
+                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Cédula</th>
+                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Carrera</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="bg-white divide-y divide-gray-200">
+                                    {estudiantes.map((est) => (
+                                        <tr key={est.id}>
+                                            <td className="px-6 py-4 whitespace-nowrap">
+                                                <div className="flex items-center">
+                                                    <div className="flex-shrink-0 h-10 w-10 bg-indigo-100 rounded-full flex items-center justify-center">
+                                                        <GraduationCap className="h-5 w-5 text-indigo-600" />
+                                                    </div>
+                                                    <div className="ml-4">
+                                                        <div className="text-sm font-medium text-gray-900">{est.nombre} {est.apellido}</div>
+                                                        <div className="text-sm text-gray-500">{est.email}</div>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{est.cedula}</td>
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{est.carrera}</td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    )}
+                    <div className="flex justify-end pt-4">
+                        <button
+                            onClick={() => setShowEstudiantesModal(false)}
+                            className="btn-secondary"
+                        >
+                            Cerrar
+                        </button>
+                    </div>
+                </div>
             </Modal>
         </div>
     );

@@ -87,6 +87,11 @@ export const adminAPI = {
         return data;
     },
 
+    actualizarPeriodo: async (id, periodo) => {
+        const { data } = await api.put(`/admin/periodos/${id}`, periodo);
+        return data;
+    },
+
     // Estudiantes
     getEstudiantes: async () => {
         const { data } = await api.get('/admin/estudiantes');
