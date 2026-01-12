@@ -1,9 +1,7 @@
 // ==================== src/services/api.js ====================
 import axios from 'axios';
 
-const API_URL = import.meta.env.PROD
-    ? 'https://controlp-backend.vercel.app/api/v1'
-    : 'http://localhost:3000/api/v1';
+const API_URL = 'https://controlp-backend.vercel.app/api/v1';
 
 const api = axios.create({
     baseURL: API_URL,
