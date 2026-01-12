@@ -1,6 +1,6 @@
 // ==================== src/components/admin/UniversidadesManager.jsx ====================
 import React, { useState, useEffect } from 'react';
-import { Plus, Building2, Edit2, Trash2 } from 'lucide-react';
+import { Plus, Building2, Edit2, Trash2, Eye } from 'lucide-react';
 import Card from '../common/Card';
 import Modal from '../common/Modal';
 import LoadingSpinner from '../common/LoadingSpinner';
@@ -18,6 +18,9 @@ export default function UniversidadesManager() {
     const [isEditing, setIsEditing] = useState(false);
     const [currentId, setCurrentId] = useState(null);
     const [activa, setActiva] = useState(true);
+    const [showPeriodosModal, setShowPeriodosModal] = useState(false);
+    const [periodos, setPeriodos] = useState([]);
+    const [selectedUniName, setSelectedUniName] = useState('');
 
     useEffect(() => {
         loadUniversidades();
@@ -35,6 +38,25 @@ export default function UniversidadesManager() {
         } finally {
             setLoading(false);
         }
+    };
+
+
+    const loadPeriodos = async () => {
+        try {
+            const data = await adminAPI.getPeriodos();
+            if (data.success) {
+                setPeriodos(data.periodos);
+            }
+        } catch (err) {
+            console.error('Error al cargar periodos:', err);
+        }
+    };
+
+    const handleVerPeriodos = async (uni) => {
+        setCurrentId(uni.id);
+        setSelectedUniName(uni.nombre);
+        await loadPeriodos(); // Cargar periodos frescos
+        setShowPeriodosModal(true);
     };
 
     const handleSubmit = async (e) => {
@@ -114,19 +136,28 @@ export default function UniversidadesManager() {
                                     </p>
                                 </div>
                             </div>
-                            <button
-                                onClick={() => {
-                                    setIsEditing(true);
-                                    setCurrentId(uni.id);
-                                    setNombre(uni.nombre);
-                                    setActiva(uni.activa);
-                                    setShowModal(true);
-                                }}
-                                className="p-2 text-indigo-600 hover:bg-indigo-50 rounded-lg transition"
-                                title="Editar Universidad"
-                            >
-                                <Edit2 className="w-5 h-5" />
-                            </button>
+                            <div className="flex gap-1">
+                                <button
+                                    onClick={() => handleVerPeriodos(uni)}
+                                    className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition"
+                                    title="Ver Periodos"
+                                >
+                                    <Eye className="w-5 h-5" />
+                                </button>
+                                <button
+                                    onClick={() => {
+                                        setIsEditing(true);
+                                        setCurrentId(uni.id);
+                                        setNombre(uni.nombre);
+                                        setActiva(uni.activa);
+                                        setShowModal(true);
+                                    }}
+                                    className="p-2 text-indigo-600 hover:bg-indigo-50 rounded-lg transition"
+                                    title="Editar Universidad"
+                                >
+                                    <Edit2 className="w-5 h-5" />
+                                </button>
+                            </div>
                         </div>
                     </Card>
                 ))}
@@ -182,6 +213,57 @@ export default function UniversidadesManager() {
                         </button>
                     </div>
                 </form>
+            </Modal>
+
+            {/* Modal ver periodos */}
+            <Modal
+                isOpen={showPeriodosModal}
+                onClose={() => setShowPeriodosModal(false)}
+                title={`Periodos - ${selectedUniName}`}
+                size="lg"
+            >
+                <div className="space-y-4">
+                    {periodos.filter(p => p.universidad_id === currentId).length === 0 ? (
+                        <p className="text-gray-500 text-center py-4">No hay periodos registrados para esta universidad.</p>
+                    ) : (
+                        <div className="overflow-x-auto">
+                            <table className="min-w-full divide-y divide-gray-200">
+                                <thead className="bg-gray-50">
+                                    <tr>
+                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nombre</th>
+                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Inicio</th>
+                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fin</th>
+                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Estado</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="bg-white divide-y divide-gray-200">
+                                    {periodos
+                                        .filter(p => p.universidad_id === currentId)
+                                        .map((periodo) => (
+                                            <tr key={periodo.id}>
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{periodo.nombre}</td>
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{new Date(periodo.fecha_inicio).toLocaleDateString()}</td>
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{new Date(periodo.fecha_fin).toLocaleDateString()}</td>
+                                                <td className="px-6 py-4 whitespace-nowrap">
+                                                    <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${periodo.activo ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                                                        {periodo.activo ? 'Activo' : 'Inactivo'}
+                                                    </span>
+                                                </td>
+                                            </tr>
+                                        ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    )}
+                    <div className="flex justify-end pt-4">
+                        <button
+                            onClick={() => setShowPeriodosModal(false)}
+                            className="btn-secondary"
+                        >
+                            Cerrar
+                        </button>
+                    </div>
+                </div>
             </Modal>
         </div>
     );
