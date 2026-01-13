@@ -4,6 +4,7 @@ import { Plus, Users, Search, Filter, Download, Upload, MoreVertical, Edit, Tras
 import Card from '../common/Card';
 import Modal from '../common/Modal';
 import LoadingSpinner from '../common/LoadingSpinner';
+import { TableSkeleton } from '../common/Skeleton';
 import Alert from '../common/Alert';
 import { adminAPI } from '../../services/api';
 import { handleApiError } from '../../utils/helpers';
@@ -426,7 +427,7 @@ export default function EstudiantesManager() {
         }
     };
 
-    if (loading) return <LoadingSpinner />;
+    // if (loading) return <LoadingSpinner />;
 
     return (
         <div className="space-y-6">
@@ -542,92 +543,97 @@ export default function EstudiantesManager() {
             </div>
 
             {/* Tabla de Estudiantes (Reemplaza Card grid para mejor densidad) */}
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
-                <div className="overflow-x-auto">
-                    <table className="min-w-full divide-y divide-gray-200">
-                        <thead className="bg-gray-50">
-                            <tr>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Estudiante</th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Universidad / Periodo</th>
-
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Estado</th>
-                                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>
-                            </tr>
-                        </thead>
-                        <tbody className="bg-white divide-y divide-gray-200">
-                            {estudiantesFiltrados.length === 0 ? (
+            {loading ? (
+                <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+                    <TableSkeleton rows={8} />
+                </div>
+            ) : (
+                <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+                    <div className="overflow-x-auto">
+                        <table className="min-w-full divide-y divide-gray-200">
+                            <thead className="bg-gray-50">
                                 <tr>
-                                    <td colspan="5" className="px-6 py-10 text-center text-gray-500">
-                                        No se encontraron estudiantes con los filtros actuales.
-                                    </td>
-                                </tr>
-                            ) : (
-                                estudiantesFiltrados.map((est) => (
-                                    <tr key={est.id} className="hover:bg-gray-50 transition-colors">
-                                        <td className="px-6 py-4 whitespace-nowrap">
-                                            <div className="flex items-center">
-                                                <div className="flex-shrink-0 h-10 w-10 bg-indigo-100 rounded-full flex items-center justify-center text-indigo-700 font-bold">
-                                                    {est.nombres.charAt(0)}{est.apellidos.charAt(0)}
-                                                </div>
-                                                <div className="ml-4">
-                                                    <div className="text-sm font-medium text-gray-900">{est.nombres} {est.apellidos}</div>
-                                                    <div className="text-sm text-gray-500">{est.email}</div>
-                                                </div>
-                                            </div>
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap">
-                                            <div className="text-sm text-gray-900">
-                                                {universidades.find(u => u.id === est.universidad_id)?.nombre || 'Sin Universidad'}
-                                            </div>
-                                            <div className="text-sm text-gray-500">
-                                                {periodos.find(p => p.id === est.periodo_id)?.nombre || 'Sin Periodo'}
-                                            </div>
-                                        </td>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Estudiante</th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Universidad / Periodo</th>
 
-                                        <td className="px-6 py-4 whitespace-nowrap">
-                                            <button
-                                                onClick={() => handleToggleStatus(est)}
-                                                className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full cursor-pointer transition-colors ${est.activo ? 'bg-green-100 text-green-800 hover:bg-green-200' : 'bg-red-100 text-red-800 hover:bg-red-200'
-                                                    }`}
-                                                title="Clic para cambiar estado"
-                                            >
-                                                {est.activo ? 'Activo' : 'Inactivo'}
-                                            </button>
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                            <div className="flex justify-end gap-2">
-                                                <button
-                                                    onClick={() => handleViewDetails(est)}
-                                                    className="text-blue-600 hover:text-blue-900 p-1 hover:bg-blue-50 rounded"
-                                                    title="Ver Detalles"
-                                                >
-                                                    <Eye className="w-4 h-4" />
-                                                </button>
-                                                <button
-                                                    onClick={() => handleEdit(est)}
-                                                    className="text-indigo-600 hover:text-indigo-900 p-1 hover:bg-indigo-50 rounded"
-                                                    title="Editar"
-                                                >
-                                                    <Edit className="w-4 h-4" />
-                                                </button>
-                                                <button
-                                                    onClick={() => handleGeneratePassword(est)}
-                                                    className="text-amber-600 hover:text-amber-900 p-1 hover:bg-amber-50 rounded"
-                                                    title="Reestablecer Contraseña"
-                                                >
-                                                    <Key className="w-4 h-4" />
-                                                </button>
-                                                {/* Más botones se implementarán en breve */}
-                                            </div>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Estado</th>
+                                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody className="bg-white divide-y divide-gray-200">
+                                {estudiantesFiltrados.length === 0 ? (
+                                    <tr>
+                                        <td colSpan="5" className="px-6 py-10 text-center text-gray-500">
+                                            No se encontraron estudiantes con los filtros actuales.
                                         </td>
                                     </tr>
-                                ))
-                            )}
-                        </tbody>
-                    </table>
+                                ) : (
+                                    estudiantesFiltrados.map((est) => (
+                                        <tr key={est.id} className="hover:bg-gray-50 transition-colors">
+                                            <td className="px-6 py-4 whitespace-nowrap">
+                                                <div className="flex items-center">
+                                                    <div className="flex-shrink-0 h-10 w-10 bg-indigo-100 rounded-full flex items-center justify-center text-indigo-700 font-bold">
+                                                        {est.nombres.charAt(0)}{est.apellidos.charAt(0)}
+                                                    </div>
+                                                    <div className="ml-4">
+                                                        <div className="text-sm font-medium text-gray-900">{est.nombres} {est.apellidos}</div>
+                                                        <div className="text-sm text-gray-500">{est.email}</div>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td className="px-6 py-4 whitespace-nowrap">
+                                                <div className="text-sm text-gray-900">
+                                                    {universidades.find(u => u.id === est.universidad_id)?.nombre || 'Sin Universidad'}
+                                                </div>
+                                                <div className="text-sm text-gray-500">
+                                                    {periodos.find(p => p.id === est.periodo_id)?.nombre || 'Sin Periodo'}
+                                                </div>
+                                            </td>
+
+                                            <td className="px-6 py-4 whitespace-nowrap">
+                                                <button
+                                                    onClick={() => handleToggleStatus(est)}
+                                                    className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full cursor-pointer transition-colors ${est.activo ? 'bg-green-100 text-green-800 hover:bg-green-200' : 'bg-red-100 text-red-800 hover:bg-red-200'
+                                                        }`}
+                                                    title="Clic para cambiar estado"
+                                                >
+                                                    {est.activo ? 'Activo' : 'Inactivo'}
+                                                </button>
+                                            </td>
+                                            <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                                <div className="flex justify-end gap-2">
+                                                    <button
+                                                        onClick={() => handleViewDetails(est)}
+                                                        className="text-blue-600 hover:text-blue-900 p-1 hover:bg-blue-50 rounded"
+                                                        title="Ver Detalles"
+                                                    >
+                                                        <Eye className="w-4 h-4" />
+                                                    </button>
+                                                    <button
+                                                        onClick={() => handleEdit(est)}
+                                                        className="text-indigo-600 hover:text-indigo-900 p-1 hover:bg-indigo-50 rounded"
+                                                        title="Editar"
+                                                    >
+                                                        <Edit className="w-4 h-4" />
+                                                    </button>
+                                                    <button
+                                                        onClick={() => handleGeneratePassword(est)}
+                                                        className="text-amber-600 hover:text-amber-900 p-1 hover:bg-amber-50 rounded"
+                                                        title="Reestablecer Contraseña"
+                                                    >
+                                                        <Key className="w-4 h-4" />
+                                                    </button>
+                                                    {/* Más botones se implementarán en breve */}
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    ))
+                                )}
+                            </tbody>
+                        </table>
+                    </div>
+                    {/* Paginación simple (opcional para v2) */}
                 </div>
-                {/* Paginación simple (opcional para v2) */}
-            </div>
 
             {/* Modal crear/editar estudiante */}
             <Modal

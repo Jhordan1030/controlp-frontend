@@ -89,7 +89,7 @@ export default function UniversidadesManager() {
         }
     };
 
-    if (loading) return <LoadingSpinner />;
+    // if (loading) return <LoadingSpinner />;
 
     return (
         <div className="space-y-6">
@@ -117,51 +117,74 @@ export default function UniversidadesManager() {
             {success && <Alert type="success" message={success} onClose={() => setSuccess('')} />}
 
             {/* Lista de universidades */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {universidades.map((uni) => (
-                    <Card key={uni.id}>
-                        <div className="flex items-start justify-between">
-                            <div className="flex items-center gap-3">
-                                <div className="w-12 h-12 bg-indigo-100 rounded-lg flex items-center justify-center">
-                                    <Building2 className="w-6 h-6 text-indigo-600" />
+            {/* Lista de universidades */}
+            {loading ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {[1, 2, 3, 4, 5, 6].map((i) => (
+                        <Card key={i}>
+                            <div className="animate-pulse flex items-start justify-between">
+                                <div className="flex items-center gap-3 flex-1">
+                                    <div className="w-12 h-12 bg-gray-200 rounded-lg"></div>
+                                    <div className="space-y-2 flex-1">
+                                        <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+                                        <div className="h-3 bg-gray-200 rounded w-1/3"></div>
+                                    </div>
                                 </div>
-                                <div>
-                                    <h3 className="font-semibold text-gray-900">{uni.nombre}</h3>
-                                    <p className="text-sm text-gray-600">
-                                        {uni.activa ? (
-                                            <span className="text-green-600">Activa</span>
-                                        ) : (
-                                            <span className="text-red-600">Inactiva</span>
-                                        )}
-                                    </p>
+                                <div className="flex gap-1 ml-4">
+                                    <div className="w-8 h-8 bg-gray-200 rounded-lg"></div>
+                                    <div className="w-8 h-8 bg-gray-200 rounded-lg"></div>
                                 </div>
                             </div>
-                            <div className="flex gap-1">
-                                <button
-                                    onClick={() => handleVerPeriodos(uni)}
-                                    className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition"
-                                    title="Ver Periodos"
-                                >
-                                    <Eye className="w-5 h-5" />
-                                </button>
-                                <button
-                                    onClick={() => {
-                                        setIsEditing(true);
-                                        setCurrentId(uni.id);
-                                        setNombre(uni.nombre);
-                                        setActiva(uni.activa);
-                                        setShowModal(true);
-                                    }}
-                                    className="p-2 text-indigo-600 hover:bg-indigo-50 rounded-lg transition"
-                                    title="Editar Universidad"
-                                >
-                                    <Edit2 className="w-5 h-5" />
-                                </button>
+                        </Card>
+                    ))}
+                </div>
+            ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {universidades.map((uni) => (
+                        <Card key={uni.id}>
+                            <div className="flex items-start justify-between">
+                                <div className="flex items-center gap-3">
+                                    <div className="w-12 h-12 bg-indigo-100 rounded-lg flex items-center justify-center">
+                                        <Building2 className="w-6 h-6 text-indigo-600" />
+                                    </div>
+                                    <div>
+                                        <h3 className="font-semibold text-gray-900">{uni.nombre}</h3>
+                                        <p className="text-sm text-gray-600">
+                                            {uni.activa ? (
+                                                <span className="text-green-600">Activa</span>
+                                            ) : (
+                                                <span className="text-red-600">Inactiva</span>
+                                            )}
+                                        </p>
+                                    </div>
+                                </div>
+                                <div className="flex gap-1">
+                                    <button
+                                        onClick={() => handleVerPeriodos(uni)}
+                                        className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition"
+                                        title="Ver Periodos"
+                                    >
+                                        <Eye className="w-5 h-5" />
+                                    </button>
+                                    <button
+                                        onClick={() => {
+                                            setIsEditing(true);
+                                            setCurrentId(uni.id);
+                                            setNombre(uni.nombre);
+                                            setActiva(uni.activa);
+                                            setShowModal(true);
+                                        }}
+                                        className="p-2 text-indigo-600 hover:bg-indigo-50 rounded-lg transition"
+                                        title="Editar Universidad"
+                                    >
+                                        <Edit2 className="w-5 h-5" />
+                                    </button>
+                                </div>
                             </div>
-                        </div>
-                    </Card>
-                ))}
-            </div>
+                        </Card>
+                    ))}
+                </div>
+            )}
 
             {/* Modal crear/editar universidad */}
             <Modal

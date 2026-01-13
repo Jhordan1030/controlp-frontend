@@ -3,6 +3,7 @@ import { Plus, Calendar, Edit2, Eye, User, GraduationCap, Trash2, Filter, Search
 import Card from '../common/Card';
 import Modal from '../common/Modal';
 import LoadingSpinner from '../common/LoadingSpinner';
+import { TableSkeleton } from '../common/Skeleton';
 import Alert from '../common/Alert';
 import { adminAPI } from '../../services/api';
 import { handleApiError, formatDateShort } from '../../utils/helpers';
@@ -264,7 +265,8 @@ export default function PeriodosManager() {
         }
     };
 
-    if (loading) return <LoadingSpinner />;
+    // Loading check removed to support Skeleton UI
+    // if (loading) return <LoadingSpinner />;
 
     return (
         <div className="space-y-6">
@@ -339,78 +341,103 @@ export default function PeriodosManager() {
             </div>
 
             {/* Lista de periodos */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {periodos
-                    .filter(periodo => {
-                        const cumpleUni = !filterUniversidad || periodo.universidad_id == filterUniversidad;
-                        const cumpleAnio = !filterAnio || periodo.fecha_inicio.includes(filterAnio);
-                        return cumpleUni && cumpleAnio;
-                    })
-                    .map((periodo) => (
-                        <Card key={periodo.id}>
-                            <div className="space-y-3">
+            {/* Lista de periodos */}
+            {loading ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {[1, 2, 3, 4, 5, 6].map((i) => (
+                        <Card key={i}>
+                            <div className="animate-pulse space-y-4">
                                 <div className="flex items-center gap-3">
-                                    <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-                                        <Calendar className="w-6 h-6 text-blue-600" />
-                                    </div>
-                                    <div>
-                                        <h3 className="font-semibold text-gray-900">{periodo.nombre}</h3>
-                                        <p className="text-sm text-gray-600">
-                                            {universidades.find(u => u.id === periodo.universidad_id)?.nombre || 'Sin universidad'}
-                                        </p>
+                                    <div className="w-12 h-12 bg-gray-200 rounded-lg"></div>
+                                    <div className="space-y-2 flex-1">
+                                        <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+                                        <div className="h-3 bg-gray-200 rounded w-1/2"></div>
                                     </div>
                                 </div>
-
-                                <div className="pt-3 border-t space-y-2 text-sm">
-                                    <div className="flex justify-between">
-                                        <span className="text-gray-600">Inicio:</span>
-                                        <span className="font-medium">{formatDateShort(periodo.fecha_inicio)}</span>
-                                    </div>
-                                    <div className="flex justify-between">
-                                        <span className="text-gray-600">Fin:</span>
-                                        <span className="font-medium">{formatDateShort(periodo.fecha_fin)}</span>
-                                    </div>
-                                    <div className="flex justify-between">
-                                        <span className="text-gray-600">Horas:</span>
-                                        <span className="font-semibold text-indigo-600">
-                                            {periodo.horas_totales_requeridas}h
-                                        </span>
-                                    </div>
-                                </div>
-
-                                <div className="flex gap-2 justify-end pt-2">
-                                    <button
-                                        onClick={() => handleVerEstudiantes(periodo)}
-                                        className="p-2 text-indigo-600 hover:bg-indigo-50 rounded-lg transition flex items-center gap-1 text-sm font-medium"
-                                        title="Ver Estudiantes"
-                                    >
-                                        <Eye className="w-4 h-4" />
-                                        <span className="hidden md:inline">Ver Estudiantes</span>
-                                    </button>
-                                    <button
-                                        onClick={() => handleEdit(periodo)}
-                                        className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition flex items-center gap-1 text-sm font-medium"
-                                        title="Editar Periodo"
-                                    >
-                                        <Edit2 className="w-4 h-4" />
-                                        <span className="hidden md:inline">Editar</span>
-                                    </button>
-                                    <button
-                                        onClick={() => handleToggleStatus(periodo)}
-                                        className={`p-2 rounded-lg transition flex items-center gap-1 text-sm font-medium ${periodo.activo
-                                            ? 'text-red-600 hover:bg-red-50'
-                                            : 'text-green-600 hover:bg-green-50'
-                                            }`}
-                                        title={periodo.activo ? 'Desactivar' : 'Activar'}
-                                    >
-                                        <Trash2 className="w-4 h-4" />
-                                        <span className="hidden md:inline">{periodo.activo ? 'Desactivar' : 'Activar'}</span>
-                                    </button>
+                                <div className="pt-3 border-t space-y-2">
+                                    <div className="h-3 bg-gray-200 rounded w-full"></div>
+                                    <div className="h-3 bg-gray-200 rounded w-full"></div>
+                                    <div className="h-3 bg-gray-200 rounded w-2/3"></div>
                                 </div>
                             </div>
                         </Card>
                     ))}
-            </div>
+                </div>
+            ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {periodos
+                        .filter(periodo => {
+                            const cumpleUni = !filterUniversidad || periodo.universidad_id == filterUniversidad;
+                            const cumpleAnio = !filterAnio || periodo.fecha_inicio.includes(filterAnio);
+                            return cumpleUni && cumpleAnio;
+                        })
+                        .map((periodo) => (
+                            <Card key={periodo.id}>
+                                <div className="space-y-3">
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                                            <Calendar className="w-6 h-6 text-blue-600" />
+                                        </div>
+                                        <div>
+                                            <h3 className="font-semibold text-gray-900">{periodo.nombre}</h3>
+                                            <p className="text-sm text-gray-600">
+                                                {universidades.find(u => u.id === periodo.universidad_id)?.nombre || 'Sin universidad'}
+                                            </p>
+                                        </div>
+                                    </div>
+
+                                    <div className="pt-3 border-t space-y-2 text-sm">
+                                        <div className="flex justify-between">
+                                            <span className="text-gray-600">Inicio:</span>
+                                            <span className="font-medium">{formatDateShort(periodo.fecha_inicio)}</span>
+                                        </div>
+                                        <div className="flex justify-between">
+                                            <span className="text-gray-600">Fin:</span>
+                                            <span className="font-medium">{formatDateShort(periodo.fecha_fin)}</span>
+                                        </div>
+                                        <div className="flex justify-between">
+                                            <span className="text-gray-600">Horas:</span>
+                                            <span className="font-semibold text-indigo-600">
+                                                {periodo.horas_totales_requeridas}h
+                                            </span>
+                                        </div>
+                                    </div>
+
+                                    <div className="flex gap-2 justify-end pt-2">
+                                        <button
+                                            onClick={() => handleVerEstudiantes(periodo)}
+                                            className="p-2 text-indigo-600 hover:bg-indigo-50 rounded-lg transition flex items-center gap-1 text-sm font-medium"
+                                            title="Ver Estudiantes"
+                                        >
+                                            <Eye className="w-4 h-4" />
+                                            <span className="hidden md:inline">Ver Estudiantes</span>
+                                        </button>
+                                        <button
+                                            onClick={() => handleEdit(periodo)}
+                                            className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition flex items-center gap-1 text-sm font-medium"
+                                            title="Editar Periodo"
+                                        >
+                                            <Edit2 className="w-4 h-4" />
+                                            <span className="hidden md:inline">Editar</span>
+                                        </button>
+                                        <button
+                                            onClick={() => handleToggleStatus(periodo)}
+                                            className={`p-2 rounded-lg transition flex items-center gap-1 text-sm font-medium ${periodo.activo
+                                                ? 'text-red-600 hover:bg-red-50'
+                                                : 'text-green-600 hover:bg-green-50'
+                                                }`}
+                                            title={periodo.activo ? 'Desactivar' : 'Activar'}
+                                        >
+                                            <Trash2 className="w-4 h-4" />
+                                            <span className="hidden md:inline">{periodo.activo ? 'Desactivar' : 'Activar'}</span>
+                                        </button>
+                                    </div>
+                                </div>
+                            </Card>
+                        ))}
+
+                </div>
+            )}
 
             {/* Modal crear/editar periodo */}
             <Modal

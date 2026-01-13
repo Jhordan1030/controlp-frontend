@@ -3,6 +3,7 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import LoadingSpinner from './components/common/LoadingSpinner';
+// Lazy load de páginas para mejorar rendimiento
 import Login from './pages/Login';
 import AdminPanel from './pages/AdminPanel';
 import EstudiantePanel from './pages/EstudiantePanel';

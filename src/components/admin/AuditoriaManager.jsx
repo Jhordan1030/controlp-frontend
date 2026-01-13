@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Search, Filter, RefreshCw, FileText, User, Shield, AlertTriangle } from 'lucide-react';
 import Card from '../common/Card';
 import LoadingSpinner from '../common/LoadingSpinner';
+import { TableSkeleton } from '../common/Skeleton';
 import Alert from '../common/Alert';
 import { adminAPI } from '../../services/api';
 import { formatDateShort, handleApiError } from '../../utils/helpers';
@@ -137,107 +138,109 @@ export default function AuditoriaManager() {
             </div>
 
             {/* Tabla */}
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
-                <div className="overflow-x-auto">
-                    <table className="min-w-full divide-y divide-gray-200">
-                        <thead className="bg-gray-50">
-                            <tr>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fecha / IP</th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Usuario</th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Acción</th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tabla / Recurso</th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Detalles</th>
-                            </tr>
-                        </thead>
-                        <tbody className="bg-white divide-y divide-gray-200">
-                            {loading && auditoria.length === 0 ? (
+            {loading && auditoria.length === 0 ? (
+                <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+                    <TableSkeleton rows={10} />
+                </div>
+            ) : (
+                <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+                    <div className="overflow-x-auto">
+                        <table className="min-w-full divide-y divide-gray-200">
+                            <thead className="bg-gray-50">
                                 <tr>
-                                    <td colSpan="5" className="px-6 py-10 text-center"><LoadingSpinner /></td>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fecha / IP</th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Usuario</th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Acción</th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tabla / Recurso</th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Detalles</th>
                                 </tr>
-                            ) : auditoria.length === 0 ? (
-                                <tr>
-                                    <td colSpan="5" className="px-6 py-10 text-center text-gray-500">
-                                        No hay registros de auditoría.
-                                    </td>
-                                </tr>
-                            ) : (
-                                auditoria.map((log) => (
-                                    <tr key={log.id} className="hover:bg-gray-50 font-mono text-sm">
-                                        <td className="px-6 py-4 whitespace-nowrap">
-                                            <div className="text-gray-900 font-medium">{formatDateShort(log.created_at)}</div>
-                                            <div className="text-xs text-gray-500">{new Date(log.created_at).toLocaleTimeString()}</div>
-                                            <div className="text-xs text-gray-400 mt-1">{log.ip_address}</div>
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap">
-                                            <div className="flex items-center">
-                                                <User className="w-4 h-4 text-gray-400 mr-2" />
-                                                <div>
-                                                    <div className="text-sm font-medium text-gray-900">
-                                                        {log.usuario_tipo === 'estudiante' && userMap[log.usuario_id]
-                                                            ? userMap[log.usuario_id]
-                                                            : log.usuario_tipo === 'administrador'
-                                                                ? `Admin (${log.usuario_id.substring(0, 8)}...)`
-                                                                : (log.usuario_id || 'Sistema')}
-                                                    </div>
-                                                    <div className="text-xs text-gray-500 uppercase">
-                                                        {log.usuario_tipo || 'Sistema'}
-                                                        {log.usuario_id && !userMap[log.usuario_id] && log.usuario_tipo !== 'administrador' && (
-                                                            <span className="block text-[10px] text-gray-400 overflow-hidden text-ellipsis w-[100px]">
-                                                                {log.usuario_id}
-                                                            </span>
-                                                        )}
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap">
-                                            <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full border ${getActionColor(log.accion)}`}>
-                                                {log.accion}
-                                            </span>
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-gray-600">
-                                            {log.tabla_afectada}
-                                            <span className="text-gray-400 text-xs ml-1">#{log.registro_id}</span>
-                                        </td>
-                                        <td className="px-6 py-4 text-xs text-gray-500 max-w-xs break-all">
-                                            {log.detalles ? JSON.stringify(log.detalles).substring(0, 100) + (JSON.stringify(log.detalles).length > 100 ? '...' : '') : '-'}
+                            </thead>
+                            <tbody className="bg-white divide-y divide-gray-200">
+                                {auditoria.length === 0 ? (
+                                    <tr>
+                                        <td colSpan="5" className="px-6 py-10 text-center text-gray-500">
+                                            No hay registros de auditoría.
                                         </td>
                                     </tr>
-                                ))
-                            )}
-                        </tbody>
-                    </table>
-                </div>
+                                ) : (
+                                    auditoria.map((log) => (
+                                        <tr key={log.id} className="hover:bg-gray-50 font-mono text-sm">
+                                            <td className="px-6 py-4 whitespace-nowrap">
+                                                <div className="text-gray-900 font-medium">{formatDateShort(log.created_at)}</div>
+                                                <div className="text-xs text-gray-500">{new Date(log.created_at).toLocaleTimeString()}</div>
+                                                <div className="text-xs text-gray-400 mt-1">{log.ip_address}</div>
+                                            </td>
+                                            <td className="px-6 py-4 whitespace-nowrap">
+                                                <div className="flex items-center">
+                                                    <User className="w-4 h-4 text-gray-400 mr-2" />
+                                                    <div>
+                                                        <div className="text-sm font-medium text-gray-900">
+                                                            {log.usuario_tipo === 'estudiante' && userMap[log.usuario_id]
+                                                                ? userMap[log.usuario_id]
+                                                                : log.usuario_tipo === 'administrador'
+                                                                    ? `Admin (${log.usuario_id.substring(0, 8)}...)`
+                                                                    : (log.usuario_id || 'Sistema')}
+                                                        </div>
+                                                        <div className="text-xs text-gray-500 uppercase">
+                                                            {log.usuario_tipo || 'Sistema'}
+                                                            {log.usuario_id && !userMap[log.usuario_id] && log.usuario_tipo !== 'administrador' && (
+                                                                <span className="block text-[10px] text-gray-400 overflow-hidden text-ellipsis w-[100px]">
+                                                                    {log.usuario_id}
+                                                                </span>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td className="px-6 py-4 whitespace-nowrap">
+                                                <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full border ${getActionColor(log.accion)}`}>
+                                                    {log.accion}
+                                                </span>
+                                            </td>
+                                            <td className="px-6 py-4 whitespace-nowrap text-gray-600">
+                                                {log.tabla_afectada}
+                                                <span className="text-gray-400 text-xs ml-1">#{log.registro_id}</span>
+                                            </td>
+                                            <td className="px-6 py-4 text-xs text-gray-500 max-w-xs break-all">
+                                                {log.detalles ? JSON.stringify(log.detalles).substring(0, 100) + (JSON.stringify(log.detalles).length > 100 ? '...' : '') : '-'}
+                                            </td>
+                                        </tr>
+                                    ))
+                                )}
+                            </tbody>
+                        </table>
+                    </div>
 
-                {/* Paginación */}
-                <div className="bg-gray-50 px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6">
-                    <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
-                        <div>
-                            <p className="text-sm text-gray-700">
-                                Página <span className="font-medium">{page}</span> de <span className="font-medium">{totalPages}</span>
-                            </p>
-                        </div>
-                        <div>
-                            <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
-                                <button
-                                    onClick={() => setPage(Math.max(1, page - 1))}
-                                    disabled={page === 1}
-                                    className="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:bg-gray-100 disabled:cursor-not-allowed"
-                                >
-                                    Anterior
-                                </button>
-                                <button
-                                    onClick={() => setPage(Math.min(totalPages, page + 1))}
-                                    disabled={page === totalPages}
-                                    className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:bg-gray-100 disabled:cursor-not-allowed"
-                                >
-                                    Siguiente
-                                </button>
-                            </nav>
+                    {/* Paginación */}
+                    <div className="bg-gray-50 px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6">
+                        <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+                            <div>
+                                <p className="text-sm text-gray-700">
+                                    Página <span className="font-medium">{page}</span> de <span className="font-medium">{totalPages}</span>
+                                </p>
+                            </div>
+                            <div>
+                                <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+                                    <button
+                                        onClick={() => setPage(Math.max(1, page - 1))}
+                                        disabled={page === 1}
+                                        className="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:bg-gray-100 disabled:cursor-not-allowed"
+                                    >
+                                        Anterior
+                                    </button>
+                                    <button
+                                        onClick={() => setPage(Math.min(totalPages, page + 1))}
+                                        disabled={page === totalPages}
+                                        className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:bg-gray-100 disabled:cursor-not-allowed"
+                                    >
+                                        Siguiente
+                                    </button>
+                                </nav>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
+            )}
         </div>
     );
 }
