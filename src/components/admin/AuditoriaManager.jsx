@@ -1,0 +1,243 @@
+import React, { useState, useEffect } from 'react';
+import { Search, Filter, RefreshCw, FileText, User, Shield, AlertTriangle } from 'lucide-react';
+import Card from '../common/Card';
+import LoadingSpinner from '../common/LoadingSpinner';
+import Alert from '../common/Alert';
+import { adminAPI } from '../../services/api';
+import { formatDateShort, handleApiError } from '../../utils/helpers';
+
+export default function AuditoriaManager() {
+    const [auditoria, setAuditoria] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState('');
+
+    // Paginación
+    const [page, setPage] = useState(1);
+    const [totalPages, setTotalPages] = useState(1);
+    const limit = 20;
+
+    // Filtros
+    const [filterTipoUsuario, setFilterTipoUsuario] = useState('');
+    const [filterAccion, setFilterAccion] = useState('');
+
+    const [userMap, setUserMap] = useState({});
+
+    useEffect(() => {
+        loadData();
+        loadUsers();
+    }, [page, filterTipoUsuario, filterAccion]);
+
+    const loadUsers = async () => {
+        try {
+            // Cargar estudiantes para mapear Nombres
+            const data = await adminAPI.getEstudiantes();
+            if (data.success) {
+                const map = {};
+                data.estudiantes.forEach(est => {
+                    map[est.id] = `${est.nombres} ${est.apellidos}`;
+                });
+                setUserMap(map);
+            }
+        } catch (err) {
+            console.error('Error cargando usuarios para auditoría:', err);
+        }
+    };
+
+    const loadData = async () => {
+        try {
+            setLoading(true);
+            const params = {
+                page,
+                limit,
+                usuario_tipo: filterTipoUsuario || undefined,
+                accion: filterAccion || undefined
+            };
+
+            const data = await adminAPI.getAuditoria(params);
+
+            if (data.success) {
+                setAuditoria(data.data);
+                if (data.pagination) {
+                    setTotalPages(data.pagination.pages);
+                }
+            } else {
+                setError(data.error || 'Error al cargar auditoría');
+            }
+        } catch (err) {
+            setError(handleApiError(err));
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const getActionIcon = (accion) => {
+        if (accion.includes('CREATE')) return <span className="text-green-600 font-bold">+</span>;
+        if (accion.includes('UPDATE')) return <span className="text-blue-600 font-bold">✎</span>;
+        if (accion.includes('DELETE')) return <span className="text-red-600 font-bold">✕</span>;
+        if (accion.includes('LOGIN')) return <span className="text-indigo-600">➔</span>;
+        return <span className="text-gray-500">•</span>;
+    };
+
+    const getActionColor = (accion) => {
+        if (accion.includes('CREATE')) return 'bg-green-50 text-green-700 border-green-200';
+        if (accion.includes('UPDATE')) return 'bg-blue-50 text-blue-700 border-blue-200';
+        if (accion.includes('DELETE')) return 'bg-red-50 text-red-700 border-red-200';
+        if (accion.includes('LOGIN')) return 'bg-indigo-50 text-indigo-700 border-indigo-200';
+        return 'bg-gray-50 text-gray-700 border-gray-200';
+    };
+
+    return (
+        <div className="space-y-6">
+            <div className="flex justify-between items-center">
+                <div>
+                    <h2 className="text-2xl font-bold text-gray-900">Auditoría del Sistema</h2>
+                    <p className="text-gray-600 mt-1">Registro de actividades y cambios</p>
+                </div>
+                <button
+                    onClick={() => { setPage(1); loadData(); }}
+                    className="p-2 text-gray-600 hover:text-indigo-600 hover:bg-indigo-50 rounded-full transition"
+                    title="Recargar"
+                >
+                    <RefreshCw className="w-5 h-5" />
+                </button>
+            </div>
+
+            {error && <Alert type="error" message={error} onClose={() => setError('')} />}
+
+            {/* Filtros */}
+            <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200 flex flex-wrap gap-4 items-end">
+                <div className="w-full md:w-auto">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Tipo de Usuario</label>
+                    <select
+                        value={filterTipoUsuario}
+                        onChange={(e) => { setFilterTipoUsuario(e.target.value); setPage(1); }}
+                        className="input-field"
+                    >
+                        <option value="">Todos</option>
+                        <option value="admin">Administrador</option>
+                        <option value="estudiante">Estudiante</option>
+                        <option value="sistema">Sistema</option>
+                    </select>
+                </div>
+                <div className="w-full md:w-auto">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Acción</label>
+                    <input
+                        type="text"
+                        placeholder="Ej. LOGIN, CREATE..."
+                        value={filterAccion}
+                        onChange={(e) => setFilterAccion(e.target.value)}
+                        onKeyDown={(e) => e.key === 'Enter' && setPage(1)}
+                        className="input-field"
+                    />
+                </div>
+                <div className="pb-1 text-sm text-gray-500 flex items-center gap-1">
+                    <Filter className="w-4 h-4" />
+                    Filtros activos
+                </div>
+            </div>
+
+            {/* Tabla */}
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+                <div className="overflow-x-auto">
+                    <table className="min-w-full divide-y divide-gray-200">
+                        <thead className="bg-gray-50">
+                            <tr>
+                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fecha / IP</th>
+                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Usuario</th>
+                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Acción</th>
+                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tabla / Recurso</th>
+                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Detalles</th>
+                            </tr>
+                        </thead>
+                        <tbody className="bg-white divide-y divide-gray-200">
+                            {loading && auditoria.length === 0 ? (
+                                <tr>
+                                    <td colSpan="5" className="px-6 py-10 text-center"><LoadingSpinner /></td>
+                                </tr>
+                            ) : auditoria.length === 0 ? (
+                                <tr>
+                                    <td colSpan="5" className="px-6 py-10 text-center text-gray-500">
+                                        No hay registros de auditoría.
+                                    </td>
+                                </tr>
+                            ) : (
+                                auditoria.map((log) => (
+                                    <tr key={log.id} className="hover:bg-gray-50 font-mono text-sm">
+                                        <td className="px-6 py-4 whitespace-nowrap">
+                                            <div className="text-gray-900 font-medium">{formatDateShort(log.created_at)}</div>
+                                            <div className="text-xs text-gray-500">{new Date(log.created_at).toLocaleTimeString()}</div>
+                                            <div className="text-xs text-gray-400 mt-1">{log.ip_address}</div>
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap">
+                                            <div className="flex items-center">
+                                                <User className="w-4 h-4 text-gray-400 mr-2" />
+                                                <div>
+                                                    <div className="text-sm font-medium text-gray-900">
+                                                        {log.usuario_tipo === 'estudiante' && userMap[log.usuario_id]
+                                                            ? userMap[log.usuario_id]
+                                                            : log.usuario_tipo === 'administrador'
+                                                                ? `Admin (${log.usuario_id.substring(0, 8)}...)`
+                                                                : (log.usuario_id || 'Sistema')}
+                                                    </div>
+                                                    <div className="text-xs text-gray-500 uppercase">
+                                                        {log.usuario_tipo || 'Sistema'}
+                                                        {log.usuario_id && !userMap[log.usuario_id] && log.usuario_tipo !== 'administrador' && (
+                                                            <span className="block text-[10px] text-gray-400 overflow-hidden text-ellipsis w-[100px]">
+                                                                {log.usuario_id}
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap">
+                                            <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full border ${getActionColor(log.accion)}`}>
+                                                {log.accion}
+                                            </span>
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-gray-600">
+                                            {log.tabla_afectada}
+                                            <span className="text-gray-400 text-xs ml-1">#{log.registro_id}</span>
+                                        </td>
+                                        <td className="px-6 py-4 text-xs text-gray-500 max-w-xs break-all">
+                                            {log.detalles ? JSON.stringify(log.detalles).substring(0, 100) + (JSON.stringify(log.detalles).length > 100 ? '...' : '') : '-'}
+                                        </td>
+                                    </tr>
+                                ))
+                            )}
+                        </tbody>
+                    </table>
+                </div>
+
+                {/* Paginación */}
+                <div className="bg-gray-50 px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6">
+                    <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+                        <div>
+                            <p className="text-sm text-gray-700">
+                                Página <span className="font-medium">{page}</span> de <span className="font-medium">{totalPages}</span>
+                            </p>
+                        </div>
+                        <div>
+                            <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+                                <button
+                                    onClick={() => setPage(Math.max(1, page - 1))}
+                                    disabled={page === 1}
+                                    className="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:bg-gray-100 disabled:cursor-not-allowed"
+                                >
+                                    Anterior
+                                </button>
+                                <button
+                                    onClick={() => setPage(Math.min(totalPages, page + 1))}
+                                    disabled={page === totalPages}
+                                    className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:bg-gray-100 disabled:cursor-not-allowed"
+                                >
+                                    Siguiente
+                                </button>
+                            </nav>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+}

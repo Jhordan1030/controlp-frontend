@@ -1,6 +1,7 @@
 // ==================== src/context/AuthContext.jsx ====================
 import React, { createContext, useState, useContext, useEffect } from 'react';
 import axios from 'axios';
+import { isTokenExpired } from '../utils/helpers';
 
 const AuthContext = createContext(null);
 
@@ -14,14 +15,37 @@ export const AuthProvider = ({ children }) => {
         const storedUser = localStorage.getItem('user');
 
         if (storedToken && storedUser) {
-            setToken(storedToken);
-            setUser(JSON.parse(storedUser));
+            // Verificar si el token ha expirado
+            if (isTokenExpired(storedToken)) {
+                localStorage.removeItem('token');
+                localStorage.removeItem('user');
+            } else {
+                setToken(storedToken);
+                setUser(JSON.parse(storedUser));
 
-            // Configurar axios con el token para futuras peticiones
-            axios.defaults.headers.common['Authorization'] = `Bearer ${storedToken}`;
+                // Configurar axios con el token para futuras peticiones
+                axios.defaults.headers.common['Authorization'] = `Bearer ${storedToken}`;
+            }
         }
         setLoading(false);
     }, []);
+
+    // Efecto para verificar periódicamente la expiración del token
+    useEffect(() => {
+        if (!token) return;
+
+        // Verificar cada minuto (60000ms)
+        const intervalId = setInterval(() => {
+            if (isTokenExpired(token)) {
+                logout();
+                // Opcional: Redirigir explícitamente si es necesario, aunque el cambio de estado 'user' a null
+                // debería disparar la redirección en los componentes protegidos.
+                window.location.href = '/login';
+            }
+        }, 60000);
+
+        return () => clearInterval(intervalId);
+    }, [token]);
 
     // Función login actualizada - ahora solo guarda datos, no hace la petición
     const login = (token, usuario) => {

@@ -7,6 +7,8 @@ import UniversidadesManager from '../components/admin/UniversidadesManager';
 import PeriodosManager from '../components/admin/PeriodosManager';
 import EstudiantesManager from '../components/admin/EstudiantesManager';
 
+import AuditoriaManager from '../components/admin/AuditoriaManager';
+
 export default function AdminPanel() {
     const [activeTab, setActiveTab] = useState('dashboard');
     const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -21,6 +23,8 @@ export default function AdminPanel() {
                 return <PeriodosManager />;
             case 'estudiantes':
                 return <EstudiantesManager />;
+            case 'auditoria':
+                return <AuditoriaManager />;
             default:
                 return <AdminDashboard />;
         }

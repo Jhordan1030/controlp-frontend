@@ -1,6 +1,6 @@
 // ==================== src/components/common/Sidebar.jsx ====================
 import React from 'react';
-import { Home, Users, Building2, Calendar, FileText, X } from 'lucide-react';
+import { Home, Users, Building2, Calendar, FileText, X, Shield } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 
 export default function Sidebar({ activeTab, setActiveTab, isOpen, onClose }) {
@@ -10,7 +10,8 @@ export default function Sidebar({ activeTab, setActiveTab, isOpen, onClose }) {
         { id: 'dashboard', label: 'Dashboard', icon: Home },
         { id: 'universidades', label: 'Universidades', icon: Building2 },
         { id: 'periodos', label: 'Periodos', icon: Calendar },
-        { id: 'estudiantes', label: 'Estudiantes', icon: Users }
+        { id: 'estudiantes', label: 'Estudiantes', icon: Users },
+        { id: 'auditoria', label: 'Auditoría', icon: Shield }
     ];
 
     const estudianteMenuItems = [

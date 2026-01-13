@@ -189,6 +189,22 @@ export default function PeriodosManager() {
         }
     };
 
+    const handleToggleStatus = async (periodo) => {
+        if (!window.confirm(`¿Seguro que deseas ${periodo.activo ? 'desactivar' : 'activar'} este periodo?`)) return;
+
+        try {
+            const data = await adminAPI.togglePeriodo(periodo.id);
+            if (data.success) {
+                setSuccess(`Periodo ${data.periodo.activo ? 'activado' : 'desactivado'} correctamente`);
+                loadData();
+            } else {
+                setError(data.error || 'Error al cambiar estado');
+            }
+        } catch (err) {
+            setError(handleApiError(err));
+        }
+    };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
         setError('');
@@ -342,6 +358,17 @@ export default function PeriodosManager() {
                                     >
                                         <Edit2 className="w-4 h-4" />
                                         <span className="hidden md:inline">Editar</span>
+                                    </button>
+                                    <button
+                                        onClick={() => handleToggleStatus(periodo)}
+                                        className={`p-2 rounded-lg transition flex items-center gap-1 text-sm font-medium ${periodo.activo
+                                                ? 'text-red-600 hover:bg-red-50'
+                                                : 'text-green-600 hover:bg-green-50'
+                                            }`}
+                                        title={periodo.activo ? 'Desactivar' : 'Activar'}
+                                    >
+                                        <Trash2 className="w-4 h-4" />
+                                        <span className="hidden md:inline">{periodo.activo ? 'Desactivar' : 'Activar'}</span>
                                     </button>
                                 </div>
                             </div>

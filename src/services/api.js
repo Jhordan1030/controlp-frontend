@@ -76,6 +76,11 @@ export const adminAPI = {
         return data;
     },
 
+    toggleUniversidad: async (id) => {
+        const { data } = await api.put(`/admin/universidades/${id}/toggle`);
+        return data;
+    },
+
     // Periodos
     getPeriodos: async () => {
         const { data } = await api.get('/admin/periodos');
@@ -89,6 +94,11 @@ export const adminAPI = {
 
     actualizarPeriodo: async (id, periodo) => {
         const { data } = await api.put(`/admin/periodos/${id}`, periodo);
+        return data;
+    },
+
+    togglePeriodo: async (id) => {
+        const { data } = await api.put(`/admin/periodos/${id}/toggle`);
         return data;
     },
 
@@ -110,6 +120,22 @@ export const adminAPI = {
 
     actualizarEstudiante: async (id, estudiante) => {
         const { data } = await api.put(`/admin/estudiantes/${id}`, estudiante);
+        return data;
+    },
+
+    toggleEstudiante: async (id) => {
+        const { data } = await api.put(`/admin/estudiantes/${id}/toggle`);
+        return data;
+    },
+
+    reestablecerPassword: async (id, nueva_password) => {
+        const { data } = await api.put(`/admin/estudiantes/${id}/reestablecer-password`, { nueva_password });
+        return data;
+    },
+
+    // Auditoría
+    getAuditoria: async (params = {}) => {
+        const { data } = await api.get('/admin/auditoria', { params });
         return data;
     }
 };
