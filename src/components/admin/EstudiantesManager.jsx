@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 
-import { Plus, Users, Search, Filter, Download, Upload, MoreVertical, Edit, Trash2, Eye, X, Check, Lock, FileText } from 'lucide-react';
+import { Plus, Users, Search, Filter, Download, Upload, MoreVertical, Edit, Trash2, Eye, X, Check, Lock, FileText, Key, Copy } from 'lucide-react';
 import Card from '../common/Card';
 import Modal from '../common/Modal';
 import LoadingSpinner from '../common/LoadingSpinner';
@@ -102,8 +102,34 @@ export default function EstudiantesManager() {
         setCurrentId(null);
     };
 
-    const handleSubmit = async (e) => {
-        e.preventDefault();
+    const handleGeneratePassword = async (estudiante) => {
+        if (!window.confirm(`¿Estás seguro de generar una nueva contraseña temporal para ${estudiante.nombres}?`)) {
+            return;
+        }
+
+        const newPass = Math.random().toString(36).slice(-8) + Math.random().toString(36).slice(-4).toUpperCase(); // Algo random alphanumeric
+
+        try {
+            const res = await adminAPI.reestablecerPassword(estudiante.id, newPass);
+            if (res.success) {
+                setTempPassword(newPass);
+                setPasswordCopied(false);
+                setShowPasswordModal(true);
+            } else {
+                setError(res.error || 'Error al generar contraseña');
+            }
+        } catch (err) {
+            setError(handleApiError(err));
+        }
+    };
+
+    const copyToClipboard = () => {
+        navigator.clipboard.writeText(tempPassword);
+        setPasswordCopied(true);
+        setTimeout(() => setPasswordCopied(false), 2000);
+    };
+
+    const saveStudent = async (shouldClose = true) => {
         setError('');
         setSuccess('');
 
@@ -142,8 +168,21 @@ export default function EstudiantesManager() {
 
                 if (data.success) {
                     setSuccess('Estudiante creado exitosamente');
-                    resetForm();
-                    setShowModal(false);
+
+                    if (shouldClose) {
+                        resetForm();
+                        setShowModal(false);
+                    } else {
+                        // Mantener modal abierto pero limpiar campos clave
+                        setFormData(prev => ({
+                            ...prev,
+                            nombres: '',
+                            apellidos: '',
+                            email: '',
+                            password: '', // Reset password
+                            // Mantener universidad y periodo para agilizar carga masiva
+                        }));
+                    }
                     loadData();
                 } else {
                     setError(data.error || 'Error al guardar estudiante');
@@ -152,6 +191,11 @@ export default function EstudiantesManager() {
         } catch (err) {
             setError(handleApiError(err));
         }
+    };
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        await saveStudent(true);
     };
 
     const handleEdit = (estudiante) => {
@@ -171,6 +215,11 @@ export default function EstudiantesManager() {
 
     // Estados para detalle e importación
     const [showDetailModal, setShowDetailModal] = useState(false);
+
+    // Estado para modal de contraseña temporal
+    const [showPasswordModal, setShowPasswordModal] = useState(false);
+    const [tempPassword, setTempPassword] = useState('');
+    const [passwordCopied, setPasswordCopied] = useState(false);
     const [selectedStudent, setSelectedStudent] = useState(null);
     const [activeTab, setActiveTab] = useState(0); // Índice del tab activo
     const [importing, setImporting] = useState(false);
@@ -561,6 +610,13 @@ export default function EstudiantesManager() {
                                                 >
                                                     <Edit className="w-4 h-4" />
                                                 </button>
+                                                <button
+                                                    onClick={() => handleGeneratePassword(est)}
+                                                    className="text-amber-600 hover:text-amber-900 p-1 hover:bg-amber-50 rounded"
+                                                    title="Reestablecer Contraseña"
+                                                >
+                                                    <Key className="w-4 h-4" />
+                                                </button>
                                                 {/* Más botones se implementarán en breve */}
                                             </div>
                                         </td>
@@ -706,6 +762,17 @@ export default function EstudiantesManager() {
                         >
                             Cancelar
                         </button>
+
+                        {!isEditing && (
+                            <button
+                                type="button"
+                                onClick={() => saveStudent(false)}
+                                className="px-4 py-2 border border-blue-600 text-blue-600 rounded-md hover:bg-blue-50 transition-colors font-medium text-sm"
+                            >
+                                Guardar y crear otro
+                            </button>
+                        )}
+
                         <button type="submit" className="btn-primary">
                             {isEditing ? 'Actualizar' : 'Crear Estudiante'}
                         </button>
@@ -849,6 +916,43 @@ export default function EstudiantesManager() {
                         </div>
                     </div>
                 )}
+            </Modal>
+
+            {/* Modal de Contraseña Temporal */}
+            <Modal
+                isOpen={showPasswordModal}
+                onClose={() => setShowPasswordModal(false)}
+                title="Contraseña Temporal Generada"
+                size="sm"
+            >
+                <div className="space-y-4 text-center py-4">
+                    <p className="text-gray-600 text-sm">
+                        Se ha generado la siguiente contraseña temporal. <br />
+                        Compártela con el estudiante para que pueda acceder (luego podrá cambiarla).
+                    </p>
+
+                    <div className="flex items-center justify-center gap-2 bg-gray-100 p-4 rounded-lg border border-gray-200">
+                        <span className="text-xl font-mono font-bold text-gray-800 tracking-wider select-all">
+                            {tempPassword}
+                        </span>
+                        <button
+                            onClick={copyToClipboard}
+                            className="p-1.5 hover:bg-gray-200 rounded-md transition-colors text-gray-500 hover:text-gray-700"
+                            title="Copiar al portapapeles"
+                        >
+                            {passwordCopied ? <Check className="w-4 h-4 text-green-600" /> : <Copy className="w-4 h-4" />}
+                        </button>
+                    </div>
+
+                    <div className="pt-2">
+                        <button
+                            onClick={() => setShowPasswordModal(false)}
+                            className="btn-primary w-full justify-center"
+                        >
+                            Entendido
+                        </button>
+                    </div>
+                </div>
             </Modal>
         </div>
     );
