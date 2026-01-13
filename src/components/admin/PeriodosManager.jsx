@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Calendar, Edit2, Eye, User, GraduationCap, Trash2, Filter } from 'lucide-react';
+import { Plus, Calendar, Edit2, Eye, User, GraduationCap, Trash2, Filter, Search } from 'lucide-react';
 import Card from '../common/Card';
 import Modal from '../common/Modal';
 import LoadingSpinner from '../common/LoadingSpinner';
@@ -114,7 +114,8 @@ export default function PeriodosManager() {
     // Estados para inscripción
     const [showInscripcionModal, setShowInscripcionModal] = useState(false);
     const [candidatos, setCandidatos] = useState([]);
-    const [selectedEstudianteId, setSelectedEstudianteId] = useState('');
+    const [selectedStudentIds, setSelectedStudentIds] = useState([]); // Changed to array for multiple selection
+    const [searchTerm, setSearchTerm] = useState('');
 
     const handlePrepareInscripcion = async () => {
         try {
@@ -134,7 +135,8 @@ export default function PeriodosManager() {
                 });
 
                 setCandidatos(disponibles);
-                setSelectedEstudianteId('');
+                setSelectedStudentIds([]); // Visual reset
+                setSearchTerm(''); // Reset search
                 setShowInscripcionModal(true);
             }
         } catch (err) {
@@ -150,17 +152,23 @@ export default function PeriodosManager() {
         setError('');
         setSuccess('');
 
-        if (!selectedEstudianteId) {
-            setError('Seleccione un estudiante');
+        if (selectedStudentIds.length === 0) {
+            setError('Seleccione al menos un estudiante');
             return;
         }
 
         try {
-            await adminAPI.actualizarEstudiante(selectedEstudianteId, {
-                periodo_id: currentId
-            });
+            setLoading(true);
+            // Procesar inscripciones en paralelo o serie
+            const promises = selectedStudentIds.map(id =>
+                adminAPI.actualizarEstudiante(id, {
+                    periodo_id: currentId
+                })
+            );
 
-            setSuccess('Estudiante inscrito correctamente');
+            await Promise.all(promises);
+
+            setSuccess(`${selectedStudentIds.length} estudiantes inscritos correctamente`);
             setShowInscripcionModal(false);
 
             const periodoActual = periodos.find(p => p.id === currentId);
@@ -168,8 +176,36 @@ export default function PeriodosManager() {
 
         } catch (err) {
             setError(handleApiError(err));
+        } finally {
+            setLoading(false);
         }
     };
+
+    const toggleStudentSelection = (id) => {
+        setSelectedStudentIds(prev => {
+            if (prev.includes(id)) {
+                return prev.filter(sid => sid !== id);
+            } else {
+                return [...prev, id];
+            }
+        });
+    };
+
+    const filteredCandidatos = candidatos.filter(est =>
+        est.nombres.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        est.apellidos.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        est.email.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+
+    const toggleSelectAll = () => {
+        if (selectedStudentIds.length === filteredCandidatos.length && filteredCandidatos.length > 0) {
+            setSelectedStudentIds([]);
+        } else {
+            setSelectedStudentIds(filteredCandidatos.map(c => c.id));
+        }
+    };
+
+    const candidatesLength = candidatos.length;
 
     const handleRemoverEstudiante = async (estudianteId) => {
         if (!window.confirm('¿Estás seguro de quitar a este estudiante del periodo?')) return;
@@ -362,8 +398,8 @@ export default function PeriodosManager() {
                                     <button
                                         onClick={() => handleToggleStatus(periodo)}
                                         className={`p-2 rounded-lg transition flex items-center gap-1 text-sm font-medium ${periodo.activo
-                                                ? 'text-red-600 hover:bg-red-50'
-                                                : 'text-green-600 hover:bg-green-50'
+                                            ? 'text-red-600 hover:bg-red-50'
+                                            : 'text-green-600 hover:bg-green-50'
                                             }`}
                                         title={periodo.activo ? 'Desactivar' : 'Activar'}
                                     >
@@ -592,19 +628,60 @@ export default function PeriodosManager() {
                                 No hay estudiantes disponibles de esta universidad para inscribir.
                             </div>
                         ) : (
-                            <select
-                                value={selectedEstudianteId}
-                                onChange={(e) => setSelectedEstudianteId(e.target.value)}
-                                className="input-field"
-                                required
-                            >
-                                <option value="">-- Seleccione un estudiante --</option>
-                                {candidatos.map(est => (
-                                    <option key={est.id} value={est.id}>
-                                        {est.nombres} {est.apellidos} ({est.email})
-                                    </option>
-                                ))}
-                            </select>
+                            <div className="border rounded-md max-h-60 overflow-y-auto p-2 space-y-2 bg-gray-50">
+                                {/* Barra de búsqueda integrada */}
+                                <div className="p-2 border-b border-gray-200 bg-white sticky top-0 z-10">
+                                    <div className="relative">
+                                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                            <Search className="h-4 w-4 text-gray-400" />
+                                        </div>
+                                        <input
+                                            type="text"
+                                            className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm transition duration-150 ease-in-out"
+                                            placeholder="Buscar por nombre o correo..."
+                                            value={searchTerm}
+                                            onChange={(e) => setSearchTerm(e.target.value)}
+                                        />
+                                    </div>
+                                </div>
+
+                                <div className="flex items-center p-2 border-b border-gray-200 mb-0 bg-gray-100">
+                                    <input
+                                        type="checkbox"
+                                        id="select-all"
+                                        checked={filteredCandidatos.length > 0 && selectedStudentIds.length === filteredCandidatos.length}
+                                        onChange={toggleSelectAll}
+                                        className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
+                                    />
+                                    <label htmlFor="select-all" className="ml-2 block text-xs font-semibold text-gray-700 uppercase tracking-wide cursor-pointer">
+                                        Seleccionar Todo ({selectedStudentIds.length})
+                                    </label>
+                                </div>
+
+                                {filteredCandidatos.length === 0 ? (
+                                    <p className="text-center text-gray-500 text-sm py-4">No se encontraron estudiantes.</p>
+                                ) : (
+                                    filteredCandidatos.map(est => (
+                                        <div key={est.id} className="flex items-start p-2 hover:bg-white rounded transition-colors cursor-pointer" onClick={() => toggleStudentSelection(est.id)}>
+                                            <div className="flex items-center h-5">
+                                                <input
+                                                    id={`student-${est.id}`}
+                                                    type="checkbox"
+                                                    checked={selectedStudentIds.includes(est.id)}
+                                                    onChange={() => { }} // Handled by div onClick
+                                                    className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded pointer-events-none"
+                                                />
+                                            </div>
+                                            <div className="ml-3 text-sm">
+                                                <label htmlFor={`student-${est.id}`} className="font-medium text-gray-700 block cursor-pointer select-none pointer-events-none">
+                                                    {est.nombres} {est.apellidos}
+                                                </label>
+                                                <span className="text-gray-500 text-xs block pointer-events-none">{est.email}</span>
+                                            </div>
+                                        </div>
+                                    ))
+                                )}
+                            </div>
                         )}
                     </div>
 
@@ -619,7 +696,7 @@ export default function PeriodosManager() {
                         <button
                             type="submit"
                             className="btn-primary"
-                            disabled={candidatos.length === 0}
+                            disabled={selectedStudentIds.length === 0}
                         >
                             Inscribir
                         </button>
