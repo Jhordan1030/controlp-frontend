@@ -7,6 +7,7 @@ import UniversidadesManager from '../components/admin/UniversidadesManager';
 import PeriodosManager from '../components/admin/PeriodosManager';
 import EstudiantesManager from '../components/admin/EstudiantesManager';
 
+import AdminProfile from '../components/admin/AdminProfile';
 import AuditoriaManager from '../components/admin/AuditoriaManager';
 
 export default function AdminPanel() {
@@ -26,6 +27,8 @@ export default function AdminPanel() {
                 return <EstudiantesManager />;
             case 'auditoria':
                 return <AuditoriaManager />;
+            case 'perfil':
+                return <AdminProfile />;
             default:
                 return <AdminDashboard />;
         }
@@ -33,7 +36,10 @@ export default function AdminPanel() {
 
     return (
         <div className="min-h-screen bg-gray-50 pt-16">
-            <Navbar onMenuClick={() => setSidebarOpen(true)} />
+            <Navbar
+                onMenuClick={() => setSidebarOpen(true)}
+                onProfileClick={() => setActiveTab('perfil')}
+            />
 
             <Sidebar
                 activeTab={activeTab}

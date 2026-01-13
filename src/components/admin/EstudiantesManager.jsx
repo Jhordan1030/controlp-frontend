@@ -634,6 +634,7 @@ export default function EstudiantesManager() {
                     </div>
                     {/* Paginación simple (opcional para v2) */}
                 </div>
+            )}
 
             {/* Modal crear/editar estudiante */}
             <Modal

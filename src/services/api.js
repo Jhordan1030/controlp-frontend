@@ -45,6 +45,16 @@ export const authAPI = {
     registrarEstudiante: async (datos) => {
         const { data } = await api.post('/auth/registro', datos);
         return data;
+    },
+
+    actualizarPerfil: async (datos) => {
+        const { data } = await api.put('/auth/perfil', datos);
+        return data;
+    },
+
+    cambiarPassword: async (password_actual, nueva_password) => {
+        const { data } = await api.put('/auth/cambiar-password', { password_actual, nueva_password });
+        return data;
     }
 };
 

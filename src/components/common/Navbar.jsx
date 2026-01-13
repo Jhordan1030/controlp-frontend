@@ -3,7 +3,7 @@ import React from 'react';
 import { LogOut, User, Menu } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 
-export default function Navbar({ onMenuClick }) {
+export default function Navbar({ onMenuClick, onProfileClick }) {
     const { user, logout } = useAuth();
 
     return (
@@ -37,7 +37,11 @@ export default function Navbar({ onMenuClick }) {
                     {/* Right side */}
                     <div className="flex items-center gap-2 sm:gap-4">
                         {/* User info */}
-                        <div className="flex items-center gap-3">
+                        <div
+                            className="flex items-center gap-3 cursor-pointer hover:bg-gray-50 p-2 rounded-lg transition"
+                            onClick={onProfileClick}
+                            title="Ver Perfil"
+                        >
                             <div className="text-right hidden md:block">
                                 <p className="text-sm font-semibold text-gray-900">{user?.nombres}</p>
                                 <p className="text-xs text-gray-600 capitalize">{user?.tipo}</p>
