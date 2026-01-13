@@ -8,6 +8,7 @@ import { TableSkeleton } from '../common/Skeleton';
 import Alert from '../common/Alert';
 import { adminAPI } from '../../services/api';
 import { handleApiError } from '../../utils/helpers';
+import { downloadCSV, downloadPDF } from '../../utils/exportHelpers';
 
 export default function EstudiantesManager() {
     const [estudiantes, setEstudiantes] = useState([]);
@@ -37,6 +38,27 @@ export default function EstudiantesManager() {
         periodo_id: '',
         activo: true
     });
+
+    // Estado para confirmación
+    const [confirmation, setConfirmation] = useState({
+        isOpen: false,
+        title: '',
+        message: '',
+        onConfirm: null,
+        loading: false
+    });
+
+    const handleConfirmClose = () => {
+        setConfirmation(prev => ({ ...prev, isOpen: false }));
+    };
+
+    const handleConfirmAction = async () => {
+        if (confirmation.onConfirm) {
+            setConfirmation(prev => ({ ...prev, loading: true }));
+            await confirmation.onConfirm();
+            setConfirmation(prev => ({ ...prev, isOpen: false, loading: false }));
+        }
+    };
 
     useEffect(() => {
         loadData();
@@ -103,25 +125,27 @@ export default function EstudiantesManager() {
         setCurrentId(null);
     };
 
-    const handleGeneratePassword = async (estudiante) => {
-        if (!window.confirm(`¿Estás seguro de generar una nueva contraseña temporal para ${estudiante.nombres}?`)) {
-            return;
-        }
-
-        const newPass = Math.random().toString(36).slice(-8) + Math.random().toString(36).slice(-4).toUpperCase(); // Algo random alphanumeric
-
-        try {
-            const res = await adminAPI.reestablecerPassword(estudiante.id, newPass);
-            if (res.success) {
-                setTempPassword(newPass);
-                setPasswordCopied(false);
-                setShowPasswordModal(true);
-            } else {
-                setError(res.error || 'Error al generar contraseña');
+    const handleGeneratePassword = (estudiante) => {
+        setConfirmation({
+            isOpen: true,
+            title: 'Confirmar regeneración de contraseña',
+            message: `¿Estás seguro de generar una nueva contraseña temporal para ${estudiante.nombres}?`,
+            onConfirm: async () => {
+                const newPass = Math.random().toString(36).slice(-8) + Math.random().toString(36).slice(-4).toUpperCase();
+                try {
+                    const res = await adminAPI.reestablecerPassword(estudiante.id, newPass);
+                    if (res.success) {
+                        setTempPassword(newPass);
+                        setPasswordCopied(false);
+                        setShowPasswordModal(true);
+                    } else {
+                        setError(res.error || 'Error al generar contraseña');
+                    }
+                } catch (err) {
+                    setError(handleApiError(err));
+                }
             }
-        } catch (err) {
-            setError(handleApiError(err));
-        }
+        });
     };
 
     const copyToClipboard = () => {
@@ -358,6 +382,20 @@ export default function EstudiantesManager() {
         document.body.removeChild(link);
     };
 
+    const handleExportPDF = () => {
+        if (!estudiantes.length) return;
+        const dataToExport = estudiantes.map(est => ({
+            ID: est.id,
+            Nombres: est.nombres,
+            Apellidos: est.apellidos,
+            Email: est.email,
+            Universidad: universidades.find(u => u.id === est.universidad_id)?.nombre || 'N/A',
+            Periodo: periodos.find(p => p.id === est.periodo_id)?.nombre || 'N/A',
+            Estado: est.activo ? 'Activo' : 'Inactivo'
+        }));
+        downloadPDF(dataToExport, 'estudiantes.pdf', 'Reporte de Estudiantes');
+    };
+
     const handleImportClick = () => {
         fileInputRef.current.click();
     };
@@ -409,22 +447,26 @@ export default function EstudiantesManager() {
         reader.readAsText(file);
     };
 
-    const handleToggleStatus = async (estudiante) => {
-        if (!window.confirm(`¿Seguro que deseas ${estudiante.activo ? 'desactivar' : 'activar'} a este estudiante?`)) return;
-
-        try {
-            const data = await adminAPI.toggleEstudiante(estudiante.id);
-
-            if (data.success) {
-                setSuccess(`Estudiante ${data.estudiante.activo ? 'activado' : 'desactivado'} correctamente`);
-                loadData();
-            } else {
-                setError(data.error || 'Error al cambiar estado');
+    const handleToggleStatus = (estudiante) => {
+        setConfirmation({
+            isOpen: true,
+            title: 'Confirmar cambio de estado',
+            message: `¿Seguro que deseas ${estudiante.activo ? 'desactivar' : 'activar'} a este estudiante?`,
+            onConfirm: async () => {
+                try {
+                    const data = await adminAPI.toggleEstudiante(estudiante.id);
+                    if (data.success) {
+                        setSuccess(`Estudiante ${data.estudiante.activo ? 'activado' : 'desactivado'} correctamente`);
+                        loadData();
+                    } else {
+                        setError(data.error || 'Error al cambiar estado');
+                    }
+                } catch (err) {
+                    console.error(err);
+                    setError('Error al actualizar estado');
+                }
             }
-        } catch (err) {
-            console.error(err);
-            setError('Error al actualizar estado');
-        }
+        });
     };
 
     // if (loading) return <LoadingSpinner />;
@@ -462,6 +504,13 @@ export default function EstudiantesManager() {
                     >
                         <Download className="w-4 h-4" />
                         <span className="hidden sm:inline">Exportar CSV</span>
+                    </button>
+                    <button
+                        onClick={handleExportPDF}
+                        className="btn-secondary flex items-center gap-2 text-sm"
+                    >
+                        <FileText className="w-4 h-4" />
+                        <span className="hidden sm:inline">Exportar PDF</span>
                     </button>
                     <button
                         onClick={() => {
@@ -957,6 +1006,33 @@ export default function EstudiantesManager() {
                             className="btn-primary w-full justify-center"
                         >
                             Entendido
+                        </button>
+                    </div>
+                </div>
+            </Modal>
+            {/* Modal de Confirmación */}
+            <Modal
+                isOpen={confirmation.isOpen}
+                onClose={handleConfirmClose}
+                title={confirmation.title}
+                size="sm"
+            >
+                <div className="space-y-4">
+                    <p className="text-gray-600">{confirmation.message}</p>
+                    <div className="flex justify-end gap-3 pt-2">
+                        <button
+                            onClick={handleConfirmClose}
+                            className="btn-secondary"
+                            disabled={confirmation.loading}
+                        >
+                            Cancelar
+                        </button>
+                        <button
+                            onClick={handleConfirmAction}
+                            className="btn-primary bg-red-600 hover:bg-red-700 focus:ring-red-500"
+                            disabled={confirmation.loading}
+                        >
+                            {confirmation.loading ? <LoadingSpinner size="sm" /> : 'Confirmar'}
                         </button>
                     </div>
                 </div>

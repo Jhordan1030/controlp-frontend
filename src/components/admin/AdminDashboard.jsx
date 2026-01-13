@@ -1,15 +1,18 @@
 import React, { useState, useEffect } from 'react';
-import { Users, Building2, Calendar, TrendingUp, Clock, ArrowRight, Shield, Activity, Bell } from 'lucide-react';
+import { Users, Building2, Calendar, TrendingUp, Clock, Shield, Activity, Bell, RefreshCcw, Download } from 'lucide-react';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import StatCard from '../common/StatCard';
-import LoadingSpinner from '../common/LoadingSpinner';
+import DashboardSkeleton from './DashboardSkeleton';
 import { adminAPI } from '../../services/api';
-import { handleApiError } from '../../utils/helpers';
+import { downloadCSV } from '../../utils/exportHelpers';
 
 export default function AdminDashboard({ setActiveTab }) {
     const [stats, setStats] = useState(null);
     const [recentActivity, setRecentActivity] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
+    const [lastUpdated, setLastUpdated] = useState(null);
+    const [refreshing, setRefreshing] = useState(false);
 
     useEffect(() => {
         loadDashboardData();
@@ -17,10 +20,12 @@ export default function AdminDashboard({ setActiveTab }) {
 
     const loadDashboardData = async () => {
         try {
-            setLoading(true);
+            if (!stats) setLoading(true); // Solo mostrar skeleton en carga inicial completa
+            else setRefreshing(true); // Mostrar spinner de refresh si ya hay datos
+
             const [statsData, activityData] = await Promise.all([
                 adminAPI.getDashboard(),
-                adminAPI.getAuditoria({ limit: 5 }) // Obtener ultimas 5 acciones
+                adminAPI.getAuditoria({ limit: 10 }) // Aumentamos a 10 para mejor export
             ]);
 
             if (statsData.success) {
@@ -32,15 +37,38 @@ export default function AdminDashboard({ setActiveTab }) {
             if (activityData.success) {
                 setRecentActivity(activityData.data);
             }
+            setLastUpdated(new Date());
         } catch (err) {
             console.error(err);
             setError('Error cargando datos del dashboard');
         } finally {
             setLoading(false);
+            setRefreshing(false);
         }
     };
 
-    if (loading) return <LoadingSpinner />;
+    const handleExportActivity = () => {
+        if (!recentActivity.length) return;
+
+        const dataToExport = recentActivity.map(log => ({
+            ID: log.id,
+            Accion: log.accion,
+            Detalles: log.detalles ? JSON.stringify(log.detalles) : '',
+            Fecha: new Date(log.created_at).toLocaleString(),
+            UsuarioID: log.usuario_id
+        }));
+
+        downloadCSV(dataToExport, `actividad_sistema_${new Date().toISOString().split('T')[0]}.csv`);
+    };
+
+    if (loading) return <DashboardSkeleton />;
+
+    // Prepare chart data
+    const chartData = stats ? [
+        { name: 'Universidades', total: stats.totalUniversidades, activas: stats.universidadesActivas },
+        { name: 'Periodos', total: stats.totalPeriodos, activas: stats.periodosActivos },
+        { name: 'Estudiantes', total: stats.totalEstudiantes, activas: stats.estudiantesActivos },
+    ] : [];
 
     // Quick Actions Configuration
     const quickActions = [
@@ -82,9 +110,26 @@ export default function AdminDashboard({ setActiveTab }) {
     return (
         <div className="space-y-8 animate-fadeIn">
             {/* Header */}
-            <div>
-                <h2 className="text-3xl font-bold text-gray-900">Dashboard Administrativo</h2>
-                <p className="text-gray-500 mt-1">Bienvenido al panel de control general del sistema.</p>
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                <div>
+                    <h2 className="text-3xl font-bold text-gray-900">Dashboard Administrativo</h2>
+                    <p className="text-gray-500 mt-1">Bienvenido al panel de control general del sistema.</p>
+                </div>
+                <div className="flex items-center gap-4">
+                    {lastUpdated && (
+                        <span className="text-sm text-gray-500 hidden sm:block">
+                            Actualizado: {lastUpdated.toLocaleTimeString()}
+                        </span>
+                    )}
+                    <button
+                        onClick={loadDashboardData}
+                        disabled={refreshing}
+                        className={`p-2 rounded-lg border border-gray-200 hover:bg-gray-50 text-gray-600 transition-all ${refreshing ? 'animate-spin' : 'hover:rotate-180'}`}
+                        title="Actualizar datos"
+                    >
+                        <RefreshCcw className="w-5 h-5" />
+                    </button>
+                </div>
             </div>
 
             {error && (
@@ -126,8 +171,32 @@ export default function AdminDashboard({ setActiveTab }) {
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                {/* Columna Izquierda: Accesos Rápidos (2/3 ancho en desktop) */}
-                <div className="lg:col-span-2 space-y-6">
+                {/* Columna Izquierda: Charts & Accesos Rápidos (2/3 ancho) */}
+                <div className="lg:col-span-2 space-y-8">
+                    {/* Charts Section */}
+                    <section className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                        <h3 className="text-lg font-bold text-gray-900 mb-6 flex items-center gap-2">
+                            <TrendingUp className="w-5 h-5 text-gray-500" />
+                            Resumen de Entidades
+                        </h3>
+                        <div style={{ width: '100%', height: 300 }}>
+                            <ResponsiveContainer width="100%" height="100%">
+                                <BarChart data={chartData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+                                    <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                                    <XAxis dataKey="name" axisLine={false} tickLine={false} />
+                                    <YAxis axisLine={false} tickLine={false} />
+                                    <Tooltip
+                                        cursor={{ fill: '#F3F4F6' }}
+                                        contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+                                    />
+                                    <Bar dataKey="total" fill="#4F46E5" radius={[4, 4, 0, 0]} name="Total" />
+                                    <Bar dataKey="activas" fill="#818CF8" radius={[4, 4, 0, 0]} name="Activas" />
+                                </BarChart>
+                            </ResponsiveContainer>
+                        </div>
+                    </section>
+
+                    {/* Quick Actions */}
                     <section className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
                         <div className="p-6 border-b border-gray-100">
                             <h3 className="text-lg font-bold text-gray-900 flex items-center gap-2">
@@ -161,27 +230,28 @@ export default function AdminDashboard({ setActiveTab }) {
 
                 {/* Columna Derecha: Actividad Reciente (1/3 ancho) */}
                 <div className="lg:col-span-1">
-                    <section className="bg-white rounded-xl shadow-sm border border-gray-200 h-full">
-                        <div className="p-6 border-b border-gray-100 flex justify-between items-center">
+                    <section className="bg-white rounded-xl shadow-sm border border-gray-200 h-full flex flex-col">
+                        <div className="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
                             <h3 className="text-lg font-bold text-gray-900 flex items-center gap-2">
                                 <Clock className="w-5 h-5 text-gray-500" />
-                                Actividad Reciente
+                                Actividad
                             </h3>
                             <button
-                                onClick={() => setActiveTab('auditoria')}
-                                className="text-xs text-blue-600 hover:text-blue-800 font-medium hover:underline"
+                                onClick={handleExportActivity}
+                                className="p-1.5 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors"
+                                title="Exportar a CSV"
                             >
-                                Ver todo
+                                <Download className="w-4 h-4" />
                             </button>
                         </div>
-                        <div className="p-0">
+                        <div className="flex-1 overflow-auto max-h-[600px]">
                             {recentActivity?.length > 0 ? (
                                 <div className="divide-y divide-gray-100">
                                     {recentActivity.map((log) => (
                                         <div key={log.id} className="p-4 hover:bg-gray-50 transition-colors">
                                             <div className="flex items-start gap-3">
                                                 <div className={`mt-1 p-1.5 rounded-full flex-shrink-0 ${log.accion.includes('CREAR') ? 'bg-green-100 text-green-600' :
-                                                    log.accion.includes('ELIMINAR') ? 'bg-red-100 text-red-600' :
+                                                    log.accion.includes('ELIMINAR') || log.accion.includes('DESACTIVAR') ? 'bg-red-100 text-red-600' :
                                                         'bg-blue-100 text-blue-600'
                                                     }`}>
                                                     <Bell className="w-3 h-3" />
@@ -206,6 +276,14 @@ export default function AdminDashboard({ setActiveTab }) {
                                     No hay actividad reciente registrada.
                                 </div>
                             )}
+                        </div>
+                        <div className="p-4 border-t border-gray-100 text-center bg-gray-50/50 rounded-b-xl">
+                            <button
+                                onClick={() => setActiveTab('auditoria')}
+                                className="text-sm text-blue-600 hover:text-blue-800 font-medium hover:underline"
+                            >
+                                Ver historial completo
+                            </button>
                         </div>
                     </section>
                 </div>

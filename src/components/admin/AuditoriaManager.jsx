@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Filter, RefreshCw, FileText, User, Shield, AlertTriangle } from 'lucide-react';
+import { Search, Filter, RefreshCw, FileText, User, Shield, AlertTriangle, Download } from 'lucide-react';
 import Card from '../common/Card';
 import LoadingSpinner from '../common/LoadingSpinner';
 import { TableSkeleton } from '../common/Skeleton';
 import Alert from '../common/Alert';
 import { adminAPI } from '../../services/api';
 import { formatDateShort, handleApiError } from '../../utils/helpers';
+import { downloadCSV, downloadPDF } from '../../utils/exportHelpers';
 
 export default function AuditoriaManager() {
     const [auditoria, setAuditoria] = useState([]);
@@ -71,6 +72,40 @@ export default function AuditoriaManager() {
         }
     };
 
+    const handleExport = () => {
+        if (!auditoria.length) return;
+        const dataToExport = auditoria.map(log => ({
+            Fecha: formatDateShort(log.created_at),
+            Hora: new Date(log.created_at).toLocaleTimeString(),
+            IP: log.ip_address,
+            Usuario: log.usuario_tipo === 'estudiante' && userMap[log.usuario_id]
+                ? userMap[log.usuario_id]
+                : (log.usuario_id || 'Sistema'),
+            Tipo: log.usuario_tipo || 'Sistema',
+            Accion: log.accion,
+            Tabla: log.tabla_afectada,
+            Recurso: log.registro_id,
+            Detalles: JSON.stringify(log.detalles || {})
+        }));
+        downloadCSV(dataToExport, 'auditoria_logs.csv');
+    };
+
+    const handleExportPDF = () => {
+        if (!auditoria.length) return;
+        const dataToExport = auditoria.map(log => ({
+            Fecha: formatDateShort(log.created_at),
+            Hora: new Date(log.created_at).toLocaleTimeString(),
+            IP: log.ip_address,
+            Usuario: log.usuario_tipo === 'estudiante' && userMap[log.usuario_id]
+                ? userMap[log.usuario_id]
+                : (log.usuario_id || 'Sistema'),
+            Accion: log.accion,
+            Tabla: log.tabla_afectada,
+            Recurso: log.registro_id
+        }));
+        downloadPDF(dataToExport, 'auditoria_logs.pdf', 'Reporte de Auditoría');
+    };
+
     const getActionIcon = (accion) => {
         if (accion.includes('CREATE')) return <span className="text-green-600 font-bold">+</span>;
         if (accion.includes('UPDATE')) return <span className="text-blue-600 font-bold">✎</span>;
@@ -89,18 +124,36 @@ export default function AuditoriaManager() {
 
     return (
         <div className="space-y-6">
-            <div className="flex justify-between items-center">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                 <div>
                     <h2 className="text-2xl font-bold text-gray-900">Auditoría del Sistema</h2>
                     <p className="text-gray-600 mt-1">Registro de actividades y cambios</p>
                 </div>
-                <button
-                    onClick={() => { setPage(1); loadData(); }}
-                    className="p-2 text-gray-600 hover:text-indigo-600 hover:bg-indigo-50 rounded-full transition"
-                    title="Recargar"
-                >
-                    <RefreshCw className="w-5 h-5" />
-                </button>
+                <div className="flex gap-2">
+                    <button
+                        onClick={handleExport}
+                        className="btn-secondary flex items-center gap-2 text-sm"
+                        title="Exportar página actual a CSV"
+                    >
+                        <Download className="w-4 h-4" />
+                        <span className="hidden sm:inline">CSV</span>
+                    </button>
+                    <button
+                        onClick={handleExportPDF}
+                        className="btn-secondary flex items-center gap-2 text-sm"
+                        title="Exportar página actual a PDF"
+                    >
+                        <FileText className="w-4 h-4" />
+                        <span className="hidden sm:inline">PDF</span>
+                    </button>
+                    <button
+                        onClick={() => { setPage(1); loadData(); }}
+                        className="p-2 text-gray-600 hover:text-indigo-600 hover:bg-indigo-50 rounded-full transition"
+                        title="Recargar"
+                    >
+                        <RefreshCw className="w-5 h-5" />
+                    </button>
+                </div>
             </div>
 
             {error && <Alert type="error" message={error} onClose={() => setError('')} />}

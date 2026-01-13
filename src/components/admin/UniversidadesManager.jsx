@@ -1,12 +1,13 @@
-// ==================== src/components/admin/UniversidadesManager.jsx ====================
 import React, { useState, useEffect } from 'react';
-import { Plus, Building2, Edit2, Trash2, Eye } from 'lucide-react';
+import { Plus, Building2, Edit2, Trash2, Eye, Search, Download, FileText } from 'lucide-react';
 import Card from '../common/Card';
 import Modal from '../common/Modal';
 import LoadingSpinner from '../common/LoadingSpinner';
+import { CardSkeleton } from '../common/Skeleton';
 import Alert from '../common/Alert';
 import { adminAPI } from '../../services/api';
 import { handleApiError } from '../../utils/helpers';
+import { downloadCSV, downloadPDF } from '../../utils/exportHelpers';
 
 export default function UniversidadesManager() {
     const [universidades, setUniversidades] = useState([]);
@@ -21,6 +22,7 @@ export default function UniversidadesManager() {
     const [showPeriodosModal, setShowPeriodosModal] = useState(false);
     const [periodos, setPeriodos] = useState([]);
     const [selectedUniName, setSelectedUniName] = useState('');
+    const [searchTerm, setSearchTerm] = useState('');
 
     useEffect(() => {
         loadUniversidades();
@@ -89,100 +91,143 @@ export default function UniversidadesManager() {
         }
     };
 
-    // if (loading) return <LoadingSpinner />;
+    const handleExport = () => {
+        if (!universidades.length) return;
+        const dataToExport = universidades.map(uni => ({
+            ID: uni.id,
+            Nombre: uni.nombre,
+            Estado: uni.activa ? 'Activa' : 'Inactiva',
+            'Fecha Registro': new Date(uni.createdAt || Date.now()).toLocaleDateString() // Fallback date
+        }));
+        downloadCSV(dataToExport, 'universidades.csv');
+    };
+
+    const handleExportPDF = () => {
+        if (!universidades.length) return;
+        const dataToExport = universidades.map(uni => ({
+            ID: uni.id,
+            Nombre: uni.nombre,
+            Estado: uni.activa ? 'Activa' : 'Inactiva',
+            'Fecha Registro': new Date(uni.createdAt || Date.now()).toLocaleDateString()
+        }));
+        downloadPDF(dataToExport, 'universidades.pdf', 'Reporte de Universidades');
+    };
+
+    const filteredUniversidades = universidades.filter(uni =>
+        uni.nombre.toLowerCase().includes(searchTerm.toLowerCase())
+    );
 
     return (
         <div className="space-y-6">
-            <div className="flex justify-between items-center">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                 <div>
                     <h2 className="text-2xl font-bold text-gray-900">Universidades</h2>
                     <p className="text-gray-600 mt-1">Gestiona las universidades del sistema</p>
                 </div>
-                <button
-                    onClick={() => {
-                        setIsEditing(false);
-                        setNombre('');
-                        setActiva(true);
-                        setShowModal(true);
-                    }}
-                    className="btn-primary flex items-center gap-2"
-                >
-                    <Plus className="w-5 h-5" />
-                    Nueva Universidad
-                </button>
+                <div className="flex gap-2">
+                    <button
+                        onClick={handleExport}
+                        className="btn-secondary flex items-center gap-2"
+                        title="Exportar CSV"
+                    >
+                        <Download className="w-5 h-5" />
+                        <span className="hidden sm:inline">CSV</span>
+                    </button>
+                    <button
+                        onClick={handleExportPDF}
+                        className="btn-secondary flex items-center gap-2"
+                        title="Exportar PDF"
+                    >
+                        <FileText className="w-5 h-5" />
+                        <span className="hidden sm:inline">PDF</span>
+                    </button>
+                    <button
+                        onClick={() => {
+                            setIsEditing(false);
+                            setNombre('');
+                            setActiva(true);
+                            setShowModal(true);
+                        }}
+                        className="btn-primary flex items-center gap-2"
+                    >
+                        <Plus className="w-5 h-5" />
+                        Nueva Universidad
+                    </button>
+                </div>
             </div>
 
             {/* Alerts */}
             {error && <Alert type="error" message={error} onClose={() => setError('')} />}
             {success && <Alert type="success" message={success} onClose={() => setSuccess('')} />}
 
-            {/* Lista de universidades */}
+            {/* Search Bar */}
+            <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
+                <div className="relative">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                    <input
+                        type="text"
+                        placeholder="Buscar universidad por nombre..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        className="input-field pl-10"
+                    />
+                </div>
+            </div>
+
             {/* Lista de universidades */}
             {loading ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {[1, 2, 3, 4, 5, 6].map((i) => (
-                        <Card key={i}>
-                            <div className="animate-pulse flex items-start justify-between">
-                                <div className="flex items-center gap-3 flex-1">
-                                    <div className="w-12 h-12 bg-gray-200 rounded-lg"></div>
-                                    <div className="space-y-2 flex-1">
-                                        <div className="h-4 bg-gray-200 rounded w-3/4"></div>
-                                        <div className="h-3 bg-gray-200 rounded w-1/3"></div>
-                                    </div>
-                                </div>
-                                <div className="flex gap-1 ml-4">
-                                    <div className="w-8 h-8 bg-gray-200 rounded-lg"></div>
-                                    <div className="w-8 h-8 bg-gray-200 rounded-lg"></div>
-                                </div>
-                            </div>
-                        </Card>
-                    ))}
-                </div>
+                <CardSkeleton count={6} />
             ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {universidades.map((uni) => (
-                        <Card key={uni.id}>
-                            <div className="flex items-start justify-between">
-                                <div className="flex items-center gap-3">
-                                    <div className="w-12 h-12 bg-indigo-100 rounded-lg flex items-center justify-center">
-                                        <Building2 className="w-6 h-6 text-indigo-600" />
+                    {filteredUniversidades.length > 0 ? (
+                        filteredUniversidades.map((uni) => (
+                            <Card key={uni.id}>
+                                <div className="flex items-start justify-between">
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-12 h-12 bg-indigo-100 rounded-lg flex items-center justify-center">
+                                            <Building2 className="w-6 h-6 text-indigo-600" />
+                                        </div>
+                                        <div>
+                                            <h3 className="font-semibold text-gray-900">{uni.nombre}</h3>
+                                            <p className="text-sm text-gray-600">
+                                                {uni.activa ? (
+                                                    <span className="text-green-600">Activa</span>
+                                                ) : (
+                                                    <span className="text-red-600">Inactiva</span>
+                                                )}
+                                            </p>
+                                        </div>
                                     </div>
-                                    <div>
-                                        <h3 className="font-semibold text-gray-900">{uni.nombre}</h3>
-                                        <p className="text-sm text-gray-600">
-                                            {uni.activa ? (
-                                                <span className="text-green-600">Activa</span>
-                                            ) : (
-                                                <span className="text-red-600">Inactiva</span>
-                                            )}
-                                        </p>
+                                    <div className="flex gap-1">
+                                        <button
+                                            onClick={() => handleVerPeriodos(uni)}
+                                            className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition"
+                                            title="Ver Periodos"
+                                        >
+                                            <Eye className="w-5 h-5" />
+                                        </button>
+                                        <button
+                                            onClick={() => {
+                                                setIsEditing(true);
+                                                setCurrentId(uni.id);
+                                                setNombre(uni.nombre);
+                                                setActiva(uni.activa);
+                                                setShowModal(true);
+                                            }}
+                                            className="p-2 text-indigo-600 hover:bg-indigo-50 rounded-lg transition"
+                                            title="Editar Universidad"
+                                        >
+                                            <Edit2 className="w-5 h-5" />
+                                        </button>
                                     </div>
                                 </div>
-                                <div className="flex gap-1">
-                                    <button
-                                        onClick={() => handleVerPeriodos(uni)}
-                                        className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition"
-                                        title="Ver Periodos"
-                                    >
-                                        <Eye className="w-5 h-5" />
-                                    </button>
-                                    <button
-                                        onClick={() => {
-                                            setIsEditing(true);
-                                            setCurrentId(uni.id);
-                                            setNombre(uni.nombre);
-                                            setActiva(uni.activa);
-                                            setShowModal(true);
-                                        }}
-                                        className="p-2 text-indigo-600 hover:bg-indigo-50 rounded-lg transition"
-                                        title="Editar Universidad"
-                                    >
-                                        <Edit2 className="w-5 h-5" />
-                                    </button>
-                                </div>
-                            </div>
-                        </Card>
-                    ))}
+                            </Card>
+                        ))
+                    ) : (
+                        <div className="col-span-full py-8 text-center text-gray-500">
+                            No se encontraron universidades con ese nombre.
+                        </div>
+                    )}
                 </div>
             )}
 

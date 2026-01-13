@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Calendar, Edit2, Eye, User, GraduationCap, Trash2, Filter, Search } from 'lucide-react';
+import { Plus, Calendar, Edit2, Eye, User, GraduationCap, Trash2, Filter, Search, Download, FileText } from 'lucide-react';
 import Card from '../common/Card';
 import Modal from '../common/Modal';
 import LoadingSpinner from '../common/LoadingSpinner';
-import { TableSkeleton } from '../common/Skeleton';
+import { TableSkeleton, CardSkeleton } from '../common/Skeleton';
 import Alert from '../common/Alert';
 import { adminAPI } from '../../services/api';
 import { handleApiError, formatDateShort } from '../../utils/helpers';
+import { downloadCSV, downloadPDF } from '../../utils/exportHelpers';
 
 export default function PeriodosManager() {
     const [periodos, setPeriodos] = useState([]);
@@ -30,6 +31,26 @@ export default function PeriodosManager() {
     const [showEstudiantesModal, setShowEstudiantesModal] = useState(false);
     const [estudiantes, setEstudiantes] = useState([]);
     const [selectedPeriodoName, setSelectedPeriodoName] = useState('');
+    const [confirmation, setConfirmation] = useState({
+        isOpen: false,
+        title: '',
+        message: '',
+        onConfirm: null,
+        loading: false
+    });
+
+    const handleConfirmClose = () => {
+        setConfirmation(prev => ({ ...prev, isOpen: false }));
+    };
+
+    const handleConfirmAction = async () => {
+        if (confirmation.onConfirm) {
+            setConfirmation(prev => ({ ...prev, loading: true }));
+            await confirmation.onConfirm();
+            setConfirmation(prev => ({ ...prev, isOpen: false, loading: false }));
+        }
+    };
+
 
     // Filtros
     const [filterUniversidad, setFilterUniversidad] = useState('');
@@ -54,6 +75,33 @@ export default function PeriodosManager() {
         } finally {
             setLoading(false);
         }
+    };
+
+    const handleExport = () => {
+        if (!periodos.length) return;
+        const dataToExport = periodos.map(p => ({
+            ID: p.id,
+            Nombre: p.nombre,
+            Universidad: p.universidad?.nombre || universidades.find(u => u.id === p.universidad_id)?.nombre || 'N/A',
+            'Fecha Inicio': formatDateShort(p.fecha_inicio),
+            'Fecha Fin': formatDateShort(p.fecha_fin),
+            Estado: p.activo ? 'Activo' : 'Inactivo',
+            'Horas Requeridas': p.horas_totales_requeridas
+        }));
+        downloadCSV(dataToExport, 'periodos_academicos.csv');
+    };
+
+    const handleExportPDF = () => {
+        if (!periodos.length) return;
+        const dataToExport = periodos.map(p => ({
+            ID: p.id,
+            Nombre: p.nombre,
+            Universidad: p.universidad?.nombre || universidades.find(u => u.id === p.universidad_id)?.nombre || 'N/A',
+            'Fecha Inicio': formatDateShort(p.fecha_inicio),
+            'Fecha Fin': formatDateShort(p.fecha_fin),
+            Estado: p.activo ? 'Activo' : 'Inactivo'
+        }));
+        downloadPDF(dataToExport, 'periodos_academicos.pdf', 'Reporte de Periodos Académicos');
     };
 
     const handleChange = (e) => {
@@ -208,38 +256,45 @@ export default function PeriodosManager() {
 
     const candidatesLength = candidatos.length;
 
-    const handleRemoverEstudiante = async (estudianteId) => {
-        if (!window.confirm('¿Estás seguro de quitar a este estudiante del periodo?')) return;
-
-        try {
-            await adminAPI.actualizarEstudiante(estudianteId, {
-                periodo_id: null // Desvincular del periodo
-            });
-
-            // Recargar lista de estudiantes del periodo actual
-            const periodoActual = periodos.find(p => p.id === currentId);
-            if (periodoActual) handleVerEstudiantes(periodoActual);
-
-        } catch (err) {
-            console.error(err);
-            setError('Error al remover estudiante');
-        }
+    const handleRemoverEstudiante = (estudianteId) => {
+        setConfirmation({
+            isOpen: true,
+            title: 'Confirmar eliminación',
+            message: '¿Estás seguro de quitar a este estudiante del periodo?',
+            onConfirm: async () => {
+                try {
+                    await adminAPI.actualizarEstudiante(estudianteId, {
+                        periodo_id: null
+                    });
+                    const periodoActual = periodos.find(p => p.id === currentId);
+                    if (periodoActual) handleVerEstudiantes(periodoActual);
+                } catch (err) {
+                    console.error(err);
+                    setError('Error al remover estudiante');
+                }
+            }
+        });
     };
 
-    const handleToggleStatus = async (periodo) => {
-        if (!window.confirm(`¿Seguro que deseas ${periodo.activo ? 'desactivar' : 'activar'} este periodo?`)) return;
-
-        try {
-            const data = await adminAPI.togglePeriodo(periodo.id);
-            if (data.success) {
-                setSuccess(`Periodo ${data.periodo.activo ? 'activado' : 'desactivado'} correctamente`);
-                loadData();
-            } else {
-                setError(data.error || 'Error al cambiar estado');
+    const handleToggleStatus = (periodo) => {
+        setConfirmation({
+            isOpen: true,
+            title: 'Confirmar cambio de estado',
+            message: `¿Seguro que deseas ${periodo.activo ? 'desactivar' : 'activar'} este periodo?`,
+            onConfirm: async () => {
+                try {
+                    const data = await adminAPI.togglePeriodo(periodo.id);
+                    if (data.success) {
+                        setSuccess(`Periodo ${data.periodo.activo ? 'activado' : 'desactivado'} correctamente`);
+                        loadData();
+                    } else {
+                        setError(data.error || 'Error al cambiar estado');
+                    }
+                } catch (err) {
+                    setError(handleApiError(err));
+                }
             }
-        } catch (err) {
-            setError(handleApiError(err));
-        }
+        });
     };
 
     const handleSubmit = async (e) => {
@@ -270,21 +325,39 @@ export default function PeriodosManager() {
 
     return (
         <div className="space-y-6">
-            <div className="flex justify-between items-center">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                 <div>
                     <h2 className="text-2xl font-bold text-gray-900">Periodos Académicos</h2>
                     <p className="text-gray-600 mt-1">Gestiona los periodos de prácticas</p>
                 </div>
-                <button
-                    onClick={() => {
-                        resetForm();
-                        setShowModal(true);
-                    }}
-                    className="btn-primary flex items-center gap-2"
-                >
-                    <Plus className="w-5 h-5" />
-                    Nuevo Periodo
-                </button>
+                <div className="flex gap-2">
+                    <button
+                        onClick={handleExport}
+                        className="btn-secondary flex items-center gap-2"
+                        title="Exportar CSV"
+                    >
+                        <Download className="w-5 h-5" />
+                        <span className="hidden sm:inline">CSV</span>
+                    </button>
+                    <button
+                        onClick={handleExportPDF}
+                        className="btn-secondary flex items-center gap-2"
+                        title="Exportar PDF"
+                    >
+                        <FileText className="w-5 h-5" />
+                        <span className="hidden sm:inline">PDF</span>
+                    </button>
+                    <button
+                        onClick={() => {
+                            resetForm();
+                            setShowModal(true);
+                        }}
+                        className="btn-primary flex items-center gap-2"
+                    >
+                        <Plus className="w-5 h-5" />
+                        Nuevo Periodo
+                    </button>
+                </div>
             </div>
 
             {error && <Alert type="error" message={error} onClose={() => setError('')} />}
@@ -342,27 +415,9 @@ export default function PeriodosManager() {
 
             {/* Lista de periodos */}
             {/* Lista de periodos */}
+            {/* Lista de periodos */}
             {loading ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {[1, 2, 3, 4, 5, 6].map((i) => (
-                        <Card key={i}>
-                            <div className="animate-pulse space-y-4">
-                                <div className="flex items-center gap-3">
-                                    <div className="w-12 h-12 bg-gray-200 rounded-lg"></div>
-                                    <div className="space-y-2 flex-1">
-                                        <div className="h-4 bg-gray-200 rounded w-3/4"></div>
-                                        <div className="h-3 bg-gray-200 rounded w-1/2"></div>
-                                    </div>
-                                </div>
-                                <div className="pt-3 border-t space-y-2">
-                                    <div className="h-3 bg-gray-200 rounded w-full"></div>
-                                    <div className="h-3 bg-gray-200 rounded w-full"></div>
-                                    <div className="h-3 bg-gray-200 rounded w-2/3"></div>
-                                </div>
-                            </div>
-                        </Card>
-                    ))}
-                </div>
+                <CardSkeleton count={6} />
             ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {periodos
@@ -729,6 +784,33 @@ export default function PeriodosManager() {
                         </button>
                     </div>
                 </form>
+            </Modal>
+            {/* Modal de Confirmación */}
+            <Modal
+                isOpen={confirmation.isOpen}
+                onClose={handleConfirmClose}
+                title={confirmation.title}
+                size="sm"
+            >
+                <div className="space-y-4">
+                    <p className="text-gray-600">{confirmation.message}</p>
+                    <div className="flex justify-end gap-3 pt-2">
+                        <button
+                            onClick={handleConfirmClose}
+                            className="btn-secondary"
+                            disabled={confirmation.loading}
+                        >
+                            Cancelar
+                        </button>
+                        <button
+                            onClick={handleConfirmAction}
+                            className="btn-primary bg-red-600 hover:bg-red-700 focus:ring-red-500"
+                            disabled={confirmation.loading}
+                        >
+                            {confirmation.loading ? <LoadingSpinner size="sm" /> : 'Confirmar'}
+                        </button>
+                    </div>
+                </div>
             </Modal>
         </div>
     );
