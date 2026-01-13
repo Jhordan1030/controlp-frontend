@@ -1,7 +1,7 @@
 // ==================== src/services/api.js ====================
 import axios from 'axios';
 
-const API_URL = 'https://controlp-backend.vercel.app/api/v1';
+const API_URL = import.meta.env.VITE_API_URL || 'https://controlp-backend.vercel.app/api/v1';
 
 const api = axios.create({
     baseURL: API_URL,
@@ -159,6 +159,11 @@ export const estudianteAPI = {
 
     getPerfil: async () => {
         const { data } = await api.get('/estudiante/perfil');
+        return data;
+    },
+
+    getMisPeriodos: async () => {
+        const { data } = await api.get('/estudiante/periodos');
         return data;
     },
 

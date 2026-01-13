@@ -36,13 +36,8 @@ export default function Login() {
         try {
             const data = await authAPI.login(formData.email, formData.password);
 
-            console.log('✅ Respuesta del servidor:', data);
-
             if (data.success) {
                 const { token, usuario } = data;
-
-                console.log('🔑 Token recibido:', token);
-                console.log('👤 Usuario recibido:', usuario);
 
                 login(token, usuario);
                 navigate('/', { replace: true });
@@ -80,8 +75,8 @@ export default function Login() {
             });
         } else {
             setFormData({
-                email: 'juan.perez@ejemplo.com',
-                password: 'Estudiante123!'
+                email: 'juan@estudiante.com',
+                password: '9i4y1an7T1D3'
             });
         }
     };

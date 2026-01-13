@@ -1,6 +1,6 @@
 // ==================== src/components/common/Sidebar.jsx ====================
 import React from 'react';
-import { Home, Users, Building2, Calendar, FileText, X, Shield } from 'lucide-react';
+import { Home, Users, Building2, Calendar, FileText, X, Shield, BookOpen } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 
 export default function Sidebar({ activeTab, setActiveTab, isOpen, onClose }) {
@@ -16,8 +16,8 @@ export default function Sidebar({ activeTab, setActiveTab, isOpen, onClose }) {
 
     const estudianteMenuItems = [
         { id: 'dashboard', label: 'Dashboard', icon: Home },
+        { id: 'mis-periodos', label: 'Mis Periodos', icon: BookOpen },
         { id: 'registros', label: 'Mis Registros', icon: FileText },
-        { id: 'registrar', label: 'Registrar Horas', icon: Calendar }
     ];
 
     const menuItems = isAdmin ? adminMenuItems : estudianteMenuItems;

@@ -1,10 +1,12 @@
+
 // ==================== src/components/estudiante/MisRegistros.jsx ====================
 import React, { useState, useEffect } from 'react';
-import { Calendar, Clock, FileText, Edit2, Trash2, AlertCircle } from 'lucide-react';
+import { Calendar, Clock, FileText, Trash2, AlertCircle, Plus } from 'lucide-react';
 import Card from '../common/Card';
-import LoadingSpinner from '../common/LoadingSpinner';
 import Alert from '../common/Alert';
 import Modal from '../common/Modal';
+import MisRegistrosSkeleton from './MisRegistrosSkeleton';
+import RegistroHoras from './RegistroHoras';
 import { estudianteAPI } from '../../services/api';
 import { handleApiError, formatDateShort } from '../../utils/helpers';
 
@@ -14,6 +16,7 @@ export default function MisRegistros() {
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
     const [showDeleteModal, setShowDeleteModal] = useState(false);
+    const [showRegistroModal, setShowRegistroModal] = useState(false);
     const [registroToDelete, setRegistroToDelete] = useState(null);
 
     useEffect(() => {
@@ -35,6 +38,12 @@ export default function MisRegistros() {
         } finally {
             setLoading(false);
         }
+    };
+
+    const handleRegistroSuccess = () => {
+        setShowRegistroModal(false);
+        loadRegistros();
+        setSuccess('Registro agregado exitosamente');
     };
 
     const handleDelete = async () => {
@@ -61,17 +70,26 @@ export default function MisRegistros() {
         setShowDeleteModal(true);
     };
 
-    if (loading) return <LoadingSpinner />;
+    if (loading) return <MisRegistrosSkeleton />;
 
     const totalHoras = registros.reduce((sum, r) => sum + parseFloat(r.horas), 0);
 
     return (
-        <div className="space-y-6">
-            <div>
-                <h2 className="text-2xl font-bold text-gray-900">Mis Registros</h2>
-                <p className="text-gray-600 mt-1">
-                    Historial completo de tus horas de prácticas
-                </p>
+        <div className="space-y-6 animate-fadeIn">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                <div>
+                    <h2 className="text-2xl font-bold text-gray-900">Mis Registros</h2>
+                    <p className="text-gray-600 mt-1">
+                        Historial completo de tus horas de prácticas
+                    </p>
+                </div>
+                <button
+                    onClick={() => setShowRegistroModal(true)}
+                    className="btn-primary flex items-center gap-2 shadow-lg shadow-indigo-200"
+                >
+                    <Plus className="w-5 h-5" />
+                    Registrar Horas
+                </button>
             </div>
 
             {error && <Alert type="error" message={error} onClose={() => setError('')} />}
@@ -79,35 +97,41 @@ export default function MisRegistros() {
 
             {/* Resumen */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="bg-white rounded-xl shadow-md p-6">
+                <div className="bg-white rounded-xl shadow-md p-6 border border-gray-100">
                     <div className="flex items-center justify-between">
                         <div>
-                            <p className="text-sm text-gray-600">Total Registros</p>
-                            <p className="text-3xl font-bold text-gray-900">{registros.length}</p>
+                            <p className="text-sm text-gray-600 font-medium">Total Registros</p>
+                            <p className="text-3xl font-bold text-gray-900 mt-1">{registros.length}</p>
                         </div>
-                        <FileText className="w-10 h-10 text-indigo-600" />
+                        <div className="p-3 bg-indigo-50 rounded-lg">
+                            <FileText className="w-8 h-8 text-indigo-600" />
+                        </div>
                     </div>
                 </div>
 
-                <div className="bg-white rounded-xl shadow-md p-6">
+                <div className="bg-white rounded-xl shadow-md p-6 border border-gray-100">
                     <div className="flex items-center justify-between">
                         <div>
-                            <p className="text-sm text-gray-600">Total Horas</p>
-                            <p className="text-3xl font-bold text-gray-900">{totalHoras.toFixed(1)}</p>
+                            <p className="text-sm text-gray-600 font-medium">Total Horas</p>
+                            <p className="text-3xl font-bold text-gray-900 mt-1">{totalHoras.toFixed(1)}</p>
                         </div>
-                        <Clock className="w-10 h-10 text-green-600" />
+                        <div className="p-3 bg-green-50 rounded-lg">
+                            <Clock className="w-8 h-8 text-green-600" />
+                        </div>
                     </div>
                 </div>
 
-                <div className="bg-white rounded-xl shadow-md p-6">
+                <div className="bg-white rounded-xl shadow-md p-6 border border-gray-100">
                     <div className="flex items-center justify-between">
                         <div>
-                            <p className="text-sm text-gray-600">Promedio Diario</p>
-                            <p className="text-3xl font-bold text-gray-900">
+                            <p className="text-sm text-gray-600 font-medium">Promedio Diario</p>
+                            <p className="text-3xl font-bold text-gray-900 mt-1">
                                 {registros.length > 0 ? (totalHoras / registros.length).toFixed(1) : '0.0'}
                             </p>
                         </div>
-                        <Calendar className="w-10 h-10 text-blue-600" />
+                        <div className="p-3 bg-blue-50 rounded-lg">
+                            <Calendar className="w-8 h-8 text-blue-600" />
+                        </div>
                     </div>
                 </div>
             </div>
@@ -119,30 +143,30 @@ export default function MisRegistros() {
                         {registros.map((registro) => (
                             <div
                                 key={registro.id}
-                                className="p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition"
+                                className="p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition border border-transparent hover:border-gray-200"
                             >
-                                <div className="flex items-start justify-between">
+                                <div className="flex items-start justify-between gap-4">
                                     <div className="flex-1">
-                                        <div className="flex items-center gap-3 mb-2">
+                                        <div className="flex items-center flex-wrap gap-2 sm:gap-3 mb-2">
                                             <Calendar className="w-5 h-5 text-indigo-600" />
                                             <span className="font-semibold text-gray-900">
-                        {formatDateShort(registro.fecha)}
-                      </span>
-                                            <span className="px-3 py-1 bg-indigo-100 text-indigo-700 rounded-full text-sm font-medium">
-                        {registro.horas}h
-                      </span>
+                                                {formatDateShort(registro.fecha)}
+                                            </span>
+                                            <span className="px-3 py-1 bg-indigo-100 text-indigo-700 rounded-full text-xs font-bold uppercase tracking-wide">
+                                                {registro.horas} horas
+                                            </span>
                                         </div>
-                                        <p className="text-sm text-gray-700 ml-8">
+                                        <p className="text-sm text-gray-700 sm:ml-8 leading-relaxed">
                                             {registro.descripcion}
                                         </p>
-                                        <p className="text-xs text-gray-500 mt-2 ml-8">
-                                            Registrado: {formatDateShort(registro.created_at)}
-                                        </p>
+                                        <div className="flex items-center gap-2 mt-2 sm:ml-8 text-xs text-gray-400">
+                                            <span>Registrado el {formatDateShort(registro.created_at)}</span>
+                                        </div>
                                     </div>
 
                                     <button
                                         onClick={() => confirmDelete(registro)}
-                                        className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition"
+                                        className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                                         title="Eliminar registro"
                                     >
                                         <Trash2 className="w-5 h-5" />
@@ -152,17 +176,32 @@ export default function MisRegistros() {
                         ))}
                     </div>
                 ) : (
-                    <div className="text-center py-12">
-                        <AlertCircle className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                        <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                    <div className="text-center py-12 flex flex-col items-center">
+                        <div className="bg-gray-50 p-4 rounded-full mb-4">
+                            <AlertCircle className="w-12 h-12 text-gray-300" />
+                        </div>
+                        <h3 className="text-lg font-semibold text-gray-900 mb-1">
                             No hay registros aún
                         </h3>
-                        <p className="text-gray-600 mb-4">
-                            Comienza registrando tus horas de prácticas
+                        <p className="text-gray-500 max-w-sm mx-auto">
+                            Tu historial de actividades aparecerá aquí una vez que comiences a registrar tus horas.
                         </p>
                     </div>
                 )}
             </Card>
+
+            {/* Modal Registrar Horas */}
+            <Modal
+                isOpen={showRegistroModal}
+                onClose={() => setShowRegistroModal(false)}
+                title="Registrar Nuevas Horas"
+            >
+                <RegistroHoras
+                    isModal={true}
+                    onSuccess={handleRegistroSuccess}
+                    onCancel={() => setShowRegistroModal(false)}
+                />
+            </Modal>
 
             {/* Modal confirmar eliminación */}
             <Modal
@@ -172,28 +211,32 @@ export default function MisRegistros() {
                 size="sm"
             >
                 <div className="space-y-4">
-                    <div className="flex items-start gap-3 p-4 bg-red-50 rounded-lg">
+                    <div className="flex items-start gap-3 p-4 bg-red-50 rounded-lg border border-red-100">
                         <AlertCircle className="w-6 h-6 text-red-600 flex-shrink-0 mt-0.5" />
                         <div>
-                            <p className="text-sm text-red-900 font-medium">
+                            <p className="text-sm text-red-900 font-bold">
                                 ¿Estás seguro de eliminar este registro?
                             </p>
                             <p className="text-xs text-red-700 mt-1">
-                                Esta acción no se puede deshacer.
+                                Esta acción eliminará las horas acumuladas y no se puede deshacer.
                             </p>
                         </div>
                     </div>
 
                     {registroToDelete && (
-                        <div className="p-3 bg-gray-50 rounded-lg text-sm">
-                            <p className="font-medium text-gray-900">
-                                Fecha: {formatDateShort(registroToDelete.fecha)}
-                            </p>
-                            <p className="text-gray-600">Horas: {registroToDelete.horas}</p>
+                        <div className="p-3 bg-gray-50 rounded-lg text-sm border border-gray-200">
+                            <div className="flex justify-between items-center mb-1">
+                                <span className="text-gray-500 text-xs uppercase font-bold">Fecha</span>
+                                <span className="font-medium text-gray-900">{formatDateShort(registroToDelete.fecha)}</span>
+                            </div>
+                            <div className="flex justify-between items-center">
+                                <span className="text-gray-500 text-xs uppercase font-bold">Horas</span>
+                                <span className="font-medium text-indigo-600">{registroToDelete.horas}h</span>
+                            </div>
                         </div>
                     )}
 
-                    <div className="flex justify-end gap-3 pt-4">
+                    <div className="flex justify-end gap-3 pt-4 border-t border-gray-100 mt-4">
                         <button
                             onClick={() => setShowDeleteModal(false)}
                             className="btn-secondary"
@@ -202,9 +245,9 @@ export default function MisRegistros() {
                         </button>
                         <button
                             onClick={handleDelete}
-                            className="bg-red-600 text-white px-4 py-2 rounded-lg font-semibold hover:bg-red-700 transition"
+                            className="bg-red-600 text-white px-4 py-2 rounded-lg font-semibold hover:bg-red-700 transition shadow-sm hover:shadow"
                         >
-                            Eliminar
+                            Sí, Eliminar
                         </button>
                     </div>
                 </div>
