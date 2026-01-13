@@ -16,7 +16,8 @@ export default function AdminPanel() {
     const renderContent = () => {
         switch (activeTab) {
             case 'dashboard':
-                return <AdminDashboard />;
+
+                return <AdminDashboard setActiveTab={setActiveTab} />;
             case 'universidades':
                 return <UniversidadesManager />;
             case 'periodos':
