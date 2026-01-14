@@ -327,8 +327,8 @@ export default function PeriodosManager() {
         <div className="space-y-6">
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                 <div>
-                    <h2 className="text-2xl font-bold text-gray-900">Periodos Académicos</h2>
-                    <p className="text-gray-600 mt-1">Gestiona los periodos de prácticas</p>
+                    <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Periodos Académicos</h2>
+                    <p className="text-gray-600 dark:text-gray-400 mt-1">Gestiona los periodos de prácticas</p>
                 </div>
                 <div className="flex gap-2">
                     <button
@@ -364,9 +364,9 @@ export default function PeriodosManager() {
             {success && <Alert type="success" message={success} onClose={() => setSuccess('')} />}
 
             {/* Filtros */}
-            <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200 flex flex-wrap gap-4 items-end">
+            <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 flex flex-wrap gap-4 items-end transition-colors duration-200">
                 <div className="flex-1 min-w-[200px]">
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Filtrar por Universidad</label>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Filtrar por Universidad</label>
                     <select
                         value={filterUniversidad}
                         onChange={(e) => setFilterUniversidad(e.target.value)}
@@ -379,7 +379,7 @@ export default function PeriodosManager() {
                     </select>
                 </div>
                 <div className="w-40">
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Año</label>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Año</label>
                     <select
                         value={filterAnio}
                         onChange={(e) => setFilterAnio(e.target.value)}
@@ -430,29 +430,29 @@ export default function PeriodosManager() {
                             <Card key={periodo.id}>
                                 <div className="space-y-3">
                                     <div className="flex items-center gap-3">
-                                        <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-                                            <Calendar className="w-6 h-6 text-blue-600" />
+                                        <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center">
+                                            <Calendar className="w-6 h-6 text-blue-600 dark:text-blue-400" />
                                         </div>
                                         <div>
-                                            <h3 className="font-semibold text-gray-900">{periodo.nombre}</h3>
-                                            <p className="text-sm text-gray-600">
+                                            <h3 className="font-semibold text-gray-900 dark:text-white">{periodo.nombre}</h3>
+                                            <p className="text-sm text-gray-600 dark:text-gray-400">
                                                 {universidades.find(u => u.id === periodo.universidad_id)?.nombre || 'Sin universidad'}
                                             </p>
                                         </div>
                                     </div>
 
-                                    <div className="pt-3 border-t space-y-2 text-sm">
+                                    <div className="pt-3 border-t border-gray-200 dark:border-gray-700 space-y-2 text-sm">
                                         <div className="flex justify-between">
-                                            <span className="text-gray-600">Inicio:</span>
-                                            <span className="font-medium">{formatDateShort(periodo.fecha_inicio)}</span>
+                                            <span className="text-gray-600 dark:text-gray-400">Inicio:</span>
+                                            <span className="font-medium text-gray-900 dark:text-gray-200">{formatDateShort(periodo.fecha_inicio)}</span>
                                         </div>
                                         <div className="flex justify-between">
-                                            <span className="text-gray-600">Fin:</span>
-                                            <span className="font-medium">{formatDateShort(periodo.fecha_fin)}</span>
+                                            <span className="text-gray-600 dark:text-gray-400">Fin:</span>
+                                            <span className="font-medium text-gray-900 dark:text-gray-200">{formatDateShort(periodo.fecha_fin)}</span>
                                         </div>
                                         <div className="flex justify-between">
-                                            <span className="text-gray-600">Horas:</span>
-                                            <span className="font-semibold text-indigo-600">
+                                            <span className="text-gray-600 dark:text-gray-400">Horas:</span>
+                                            <span className="font-semibold text-indigo-600 dark:text-indigo-400">
                                                 {periodo.horas_totales_requeridas}h
                                             </span>
                                         </div>
@@ -461,7 +461,7 @@ export default function PeriodosManager() {
                                     <div className="flex gap-2 justify-end pt-2">
                                         <button
                                             onClick={() => handleVerEstudiantes(periodo)}
-                                            className="p-2 text-indigo-600 hover:bg-indigo-50 rounded-lg transition flex items-center gap-1 text-sm font-medium"
+                                            className="p-2 text-indigo-600 hover:bg-indigo-50 dark:text-indigo-400 dark:hover:bg-indigo-900/30 rounded-lg transition flex items-center gap-1 text-sm font-medium"
                                             title="Ver Estudiantes"
                                         >
                                             <Eye className="w-4 h-4" />
@@ -469,7 +469,7 @@ export default function PeriodosManager() {
                                         </button>
                                         <button
                                             onClick={() => handleEdit(periodo)}
-                                            className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition flex items-center gap-1 text-sm font-medium"
+                                            className="p-2 text-blue-600 hover:bg-blue-50 dark:text-blue-400 dark:hover:bg-blue-900/30 rounded-lg transition flex items-center gap-1 text-sm font-medium"
                                             title="Editar Periodo"
                                         >
                                             <Edit2 className="w-4 h-4" />
@@ -478,8 +478,8 @@ export default function PeriodosManager() {
                                         <button
                                             onClick={() => handleToggleStatus(periodo)}
                                             className={`p-2 rounded-lg transition flex items-center gap-1 text-sm font-medium ${periodo.activo
-                                                ? 'text-red-600 hover:bg-red-50'
-                                                : 'text-green-600 hover:bg-green-50'
+                                                ? 'text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/30'
+                                                : 'text-green-600 hover:bg-green-50 dark:text-green-400 dark:hover:bg-green-900/30'
                                                 }`}
                                             title={periodo.activo ? 'Desactivar' : 'Activar'}
                                         >
@@ -503,7 +503,7 @@ export default function PeriodosManager() {
             >
                 <form onSubmit={handleSubmit} className="space-y-4">
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                             Universidad
                         </label>
                         <select
@@ -523,7 +523,7 @@ export default function PeriodosManager() {
                     </div>
 
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                             Nombre del Periodo
                         </label>
                         <input
@@ -539,7 +539,7 @@ export default function PeriodosManager() {
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                                 Fecha de Inicio
                             </label>
                             <input
@@ -553,7 +553,7 @@ export default function PeriodosManager() {
                         </div>
 
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                                 Fecha de Fin
                             </label>
                             <input
@@ -568,7 +568,7 @@ export default function PeriodosManager() {
                     </div>
 
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                             Horas Totales Requeridas
                         </label>
                         <input
@@ -605,8 +605,8 @@ export default function PeriodosManager() {
                 size="lg"
             >
                 <div className="space-y-4">
-                    <div className="flex justify-between items-center bg-gray-50 p-3 rounded-lg">
-                        <span className="text-sm text-gray-600">Estudiantes matriculados: <span className="font-bold text-gray-900">{estudiantes.length}</span></span>
+                    <div className="flex justify-between items-center bg-gray-50 dark:bg-gray-700/50 p-3 rounded-lg">
+                        <span className="text-sm text-gray-600 dark:text-gray-300">Estudiantes matriculados: <span className="font-bold text-gray-900 dark:text-white">{estudiantes.length}</span></span>
                         <button
                             onClick={() => {
                                 // currentId ya debe estar seteado cuando se abrió este modal?
@@ -627,38 +627,38 @@ export default function PeriodosManager() {
                     <div>
                         {estudiantes.length === 0 ? (
                             <div className="text-center py-8">
-                                <div className="bg-gray-100 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
-                                    <User className="w-8 h-8 text-gray-400" />
+                                <div className="bg-gray-100 dark:bg-gray-700 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
+                                    <User className="w-8 h-8 text-gray-400 dark:text-gray-500" />
                                 </div>
-                                <p className="text-gray-500">No hay estudiantes inscritos en este periodo.</p>
+                                <p className="text-gray-500 dark:text-gray-400">No hay estudiantes inscritos en este periodo.</p>
                             </div>
                         ) : (
                             <div className="overflow-x-auto">
-                                <table className="min-w-full divide-y divide-gray-200">
-                                    <thead className="bg-gray-50">
+                                <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                                    <thead className="bg-gray-50 dark:bg-gray-700/50">
                                         <tr>
-                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Estudiante</th>
-                                            <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>
+                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Estudiante</th>
+                                            <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Acciones</th>
                                         </tr>
                                     </thead>
-                                    <tbody className="bg-white divide-y divide-gray-200">
+                                    <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
                                         {estudiantes.map((est) => (
                                             <tr key={est.id}>
                                                 <td className="px-6 py-4 whitespace-nowrap">
                                                     <div className="flex items-center">
-                                                        <div className="flex-shrink-0 h-10 w-10 bg-indigo-100 rounded-full flex items-center justify-center">
-                                                            <GraduationCap className="h-5 w-5 text-indigo-600" />
+                                                        <div className="flex-shrink-0 h-10 w-10 bg-indigo-100 dark:bg-indigo-900/30 rounded-full flex items-center justify-center">
+                                                            <GraduationCap className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />
                                                         </div>
                                                         <div className="ml-4">
-                                                            <div className="text-sm font-medium text-gray-900">{est.nombres} {est.apellidos}</div>
-                                                            <div className="text-sm text-gray-500">{est.email}</div>
+                                                            <div className="text-sm font-medium text-gray-900 dark:text-white">{est.nombres} {est.apellidos}</div>
+                                                            <div className="text-sm text-gray-500 dark:text-gray-400">{est.email}</div>
                                                         </div>
                                                     </div>
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                                                     <button
                                                         onClick={() => handleRemoverEstudiante(est.id)}
-                                                        className="text-red-600 hover:text-red-900 bg-red-50 p-2 rounded-full hover:bg-red-100 transition"
+                                                        className="text-red-600 hover:text-red-900 bg-red-50 hover:bg-red-100 dark:bg-red-900/30 dark:hover:bg-red-900/50 dark:text-red-400 p-2 rounded-full transition"
                                                         title="Quitar del periodo"
                                                     >
                                                         <Trash2 className="w-5 h-5" />
@@ -691,35 +691,35 @@ export default function PeriodosManager() {
             >
                 <form onSubmit={handleInscribir} className="space-y-4">
                     <div>
-                        <p className="mb-4 text-gray-600">
+                        <p className="mb-4 text-gray-600 dark:text-gray-300">
                             Matricular estudiante en: <span className="font-semibold">{selectedPeriodoName}</span>
                         </p>
                         {/* Debug Info para el usuario */}
                         {currentId && (
-                            <p className="mb-3 text-xs text-blue-600 bg-blue-50 p-2 rounded">
+                            <p className="mb-3 text-xs text-blue-600 bg-blue-50 dark:bg-blue-900/20 dark:text-blue-300 p-2 rounded">
                                 <strong>Filtro aplicado:</strong> Mostrando estudiantes de la universidad <span className="font-bold uppercase">{periodos.find(p => p.id === currentId)?.universidad_id && universidades.find(u => u.id === periodos.find(p => p.id === currentId).universidad_id)?.nombre}</span>
                             </p>
                         )}
 
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                             Seleccionar Estudiante
                         </label>
 
                         {candidatos.length === 0 ? (
-                            <div className="p-3 bg-yellow-50 text-yellow-700 rounded-lg text-sm">
+                            <div className="p-3 bg-yellow-50 text-yellow-700 dark:bg-yellow-900/20 dark:text-yellow-400 rounded-lg text-sm">
                                 No hay estudiantes disponibles de esta universidad para inscribir.
                             </div>
                         ) : (
-                            <div className="border rounded-md max-h-60 overflow-y-auto p-2 space-y-2 bg-gray-50">
+                            <div className="border border-gray-200 dark:border-gray-700 rounded-md max-h-60 overflow-y-auto p-2 space-y-2 bg-gray-50 dark:bg-gray-800">
                                 {/* Barra de búsqueda integrada */}
-                                <div className="p-2 border-b border-gray-200 bg-white sticky top-0 z-10">
+                                <div className="p-2 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 sticky top-0 z-10">
                                     <div className="relative">
                                         <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                                             <Search className="h-4 w-4 text-gray-400" />
                                         </div>
                                         <input
                                             type="text"
-                                            className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm transition duration-150 ease-in-out"
+                                            className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm transition duration-150 ease-in-out dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400"
                                             placeholder="Buscar por nombre o correo..."
                                             value={searchTerm}
                                             onChange={(e) => setSearchTerm(e.target.value)}
@@ -727,15 +727,15 @@ export default function PeriodosManager() {
                                     </div>
                                 </div>
 
-                                <div className="flex items-center p-2 border-b border-gray-200 mb-0 bg-gray-100">
+                                <div className="flex items-center p-2 border-b border-gray-200 dark:border-gray-700 mb-0 bg-gray-100 dark:bg-gray-700/50">
                                     <input
                                         type="checkbox"
                                         id="select-all"
                                         checked={filteredCandidatos.length > 0 && selectedStudentIds.length === filteredCandidatos.length}
                                         onChange={toggleSelectAll}
-                                        className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
+                                        className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded dark:bg-gray-700 dark:border-gray-600"
                                     />
-                                    <label htmlFor="select-all" className="ml-2 block text-xs font-semibold text-gray-700 uppercase tracking-wide cursor-pointer">
+                                    <label htmlFor="select-all" className="ml-2 block text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wide cursor-pointer">
                                         Seleccionar Todo ({selectedStudentIds.length})
                                     </label>
                                 </div>
@@ -744,21 +744,21 @@ export default function PeriodosManager() {
                                     <p className="text-center text-gray-500 text-sm py-4">No se encontraron estudiantes.</p>
                                 ) : (
                                     filteredCandidatos.map(est => (
-                                        <div key={est.id} className="flex items-start p-2 hover:bg-white rounded transition-colors cursor-pointer" onClick={() => toggleStudentSelection(est.id)}>
+                                        <div key={est.id} className="flex items-start p-2 hover:bg-white dark:hover:bg-gray-700 rounded transition-colors cursor-pointer" onClick={() => toggleStudentSelection(est.id)}>
                                             <div className="flex items-center h-5">
                                                 <input
                                                     id={`student-${est.id}`}
                                                     type="checkbox"
                                                     checked={selectedStudentIds.includes(est.id)}
                                                     onChange={() => { }} // Handled by div onClick
-                                                    className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded pointer-events-none"
+                                                    className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded pointer-events-none dark:bg-gray-700 dark:border-gray-600"
                                                 />
                                             </div>
                                             <div className="ml-3 text-sm">
-                                                <label htmlFor={`student-${est.id}`} className="font-medium text-gray-700 block cursor-pointer select-none pointer-events-none">
+                                                <label htmlFor={`student-${est.id}`} className="font-medium text-gray-700 dark:text-gray-200 block cursor-pointer select-none pointer-events-none">
                                                     {est.nombres} {est.apellidos}
                                                 </label>
-                                                <span className="text-gray-500 text-xs block pointer-events-none">{est.email}</span>
+                                                <span className="text-gray-500 dark:text-gray-400 text-xs block pointer-events-none">{est.email}</span>
                                             </div>
                                         </div>
                                     ))
@@ -793,7 +793,7 @@ export default function PeriodosManager() {
                 size="sm"
             >
                 <div className="space-y-4">
-                    <p className="text-gray-600">{confirmation.message}</p>
+                    <p className="text-gray-600 dark:text-gray-300">{confirmation.message}</p>
                     <div className="flex justify-end gap-3 pt-2">
                         <button
                             onClick={handleConfirmClose}

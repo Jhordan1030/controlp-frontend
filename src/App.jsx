@@ -2,6 +2,7 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
+import { ThemeProvider } from './context/ThemeContext';
 import LoadingSpinner from './components/common/LoadingSpinner';
 // Lazy load de páginas para mejorar rendimiento
 import Login from './pages/Login';
@@ -87,10 +88,12 @@ function AppRoutes() {
 export default function App() {
     return (
         <Router>
-            <AuthProvider>
-                <AutoLogout />
-                <AppRoutes />
-            </AuthProvider>
+            <ThemeProvider>
+                <AuthProvider>
+                    <AutoLogout />
+                    <AppRoutes />
+                </AuthProvider>
+            </ThemeProvider>
         </Router>
     );
 }

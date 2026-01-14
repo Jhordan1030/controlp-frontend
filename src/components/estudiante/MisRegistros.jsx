@@ -78,8 +78,8 @@ export default function MisRegistros() {
         <div className="space-y-6 animate-fadeIn">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                 <div>
-                    <h2 className="text-2xl font-bold text-gray-900">Mis Registros</h2>
-                    <p className="text-gray-600 mt-1">
+                    <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Mis Registros</h2>
+                    <p className="text-gray-600 dark:text-gray-400 mt-1">
                         Historial completo de tus horas de prácticas
                     </p>
                 </div>
@@ -97,40 +97,40 @@ export default function MisRegistros() {
 
             {/* Resumen */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="bg-white rounded-xl shadow-md p-6 border border-gray-100">
+                <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md p-6 border border-gray-100 dark:border-gray-700 transition-colors duration-200">
                     <div className="flex items-center justify-between">
                         <div>
-                            <p className="text-sm text-gray-600 font-medium">Total Registros</p>
-                            <p className="text-3xl font-bold text-gray-900 mt-1">{registros.length}</p>
+                            <p className="text-sm text-gray-600 dark:text-gray-400 font-medium">Total Registros</p>
+                            <p className="text-3xl font-bold text-gray-900 dark:text-white mt-1">{registros.length}</p>
                         </div>
-                        <div className="p-3 bg-indigo-50 rounded-lg">
-                            <FileText className="w-8 h-8 text-indigo-600" />
+                        <div className="p-3 bg-indigo-50 dark:bg-indigo-900/20 rounded-lg">
+                            <FileText className="w-8 h-8 text-indigo-600 dark:text-indigo-400" />
                         </div>
                     </div>
                 </div>
 
-                <div className="bg-white rounded-xl shadow-md p-6 border border-gray-100">
+                <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md p-6 border border-gray-100 dark:border-gray-700 transition-colors duration-200">
                     <div className="flex items-center justify-between">
                         <div>
-                            <p className="text-sm text-gray-600 font-medium">Total Horas</p>
-                            <p className="text-3xl font-bold text-gray-900 mt-1">{totalHoras.toFixed(1)}</p>
+                            <p className="text-sm text-gray-600 dark:text-gray-400 font-medium">Total Horas</p>
+                            <p className="text-3xl font-bold text-gray-900 dark:text-white mt-1">{totalHoras.toFixed(1)}</p>
                         </div>
-                        <div className="p-3 bg-green-50 rounded-lg">
-                            <Clock className="w-8 h-8 text-green-600" />
+                        <div className="p-3 bg-green-50 dark:bg-green-900/20 rounded-lg">
+                            <Clock className="w-8 h-8 text-green-600 dark:text-green-400" />
                         </div>
                     </div>
                 </div>
 
-                <div className="bg-white rounded-xl shadow-md p-6 border border-gray-100">
+                <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md p-6 border border-gray-100 dark:border-gray-700 transition-colors duration-200">
                     <div className="flex items-center justify-between">
                         <div>
-                            <p className="text-sm text-gray-600 font-medium">Promedio Diario</p>
-                            <p className="text-3xl font-bold text-gray-900 mt-1">
+                            <p className="text-sm text-gray-600 dark:text-gray-400 font-medium">Promedio Diario</p>
+                            <p className="text-3xl font-bold text-gray-900 dark:text-white mt-1">
                                 {registros.length > 0 ? (totalHoras / registros.length).toFixed(1) : '0.0'}
                             </p>
                         </div>
-                        <div className="p-3 bg-blue-50 rounded-lg">
-                            <Calendar className="w-8 h-8 text-blue-600" />
+                        <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                            <Calendar className="w-8 h-8 text-blue-600 dark:text-blue-400" />
                         </div>
                     </div>
                 </div>
@@ -143,20 +143,20 @@ export default function MisRegistros() {
                         {registros.map((registro) => (
                             <div
                                 key={registro.id}
-                                className="p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition border border-transparent hover:border-gray-200"
+                                className="p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition border border-transparent hover:border-gray-200 dark:hover:border-gray-600"
                             >
                                 <div className="flex items-start justify-between gap-4">
                                     <div className="flex-1">
                                         <div className="flex items-center flex-wrap gap-2 sm:gap-3 mb-2">
-                                            <Calendar className="w-5 h-5 text-indigo-600" />
-                                            <span className="font-semibold text-gray-900">
+                                            <Calendar className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
+                                            <span className="font-semibold text-gray-900 dark:text-white">
                                                 {formatDateShort(registro.fecha)}
                                             </span>
-                                            <span className="px-3 py-1 bg-indigo-100 text-indigo-700 rounded-full text-xs font-bold uppercase tracking-wide">
+                                            <span className="px-3 py-1 bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 rounded-full text-xs font-bold uppercase tracking-wide">
                                                 {registro.horas} horas
                                             </span>
                                         </div>
-                                        <p className="text-sm text-gray-700 sm:ml-8 leading-relaxed">
+                                        <p className="text-sm text-gray-700 dark:text-gray-300 sm:ml-8 leading-relaxed">
                                             {registro.descripcion}
                                         </p>
                                         <div className="flex items-center gap-2 mt-2 sm:ml-8 text-xs text-gray-400">
@@ -177,13 +177,13 @@ export default function MisRegistros() {
                     </div>
                 ) : (
                     <div className="text-center py-12 flex flex-col items-center">
-                        <div className="bg-gray-50 p-4 rounded-full mb-4">
-                            <AlertCircle className="w-12 h-12 text-gray-300" />
+                        <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-full mb-4">
+                            <AlertCircle className="w-12 h-12 text-gray-300 dark:text-gray-500" />
                         </div>
-                        <h3 className="text-lg font-semibold text-gray-900 mb-1">
+                        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-1">
                             No hay registros aún
                         </h3>
-                        <p className="text-gray-500 max-w-sm mx-auto">
+                        <p className="text-gray-500 dark:text-gray-400 max-w-sm mx-auto">
                             Tu historial de actividades aparecerá aquí una vez que comiences a registrar tus horas.
                         </p>
                     </div>
@@ -224,14 +224,14 @@ export default function MisRegistros() {
                     </div>
 
                     {registroToDelete && (
-                        <div className="p-3 bg-gray-50 rounded-lg text-sm border border-gray-200">
+                        <div className="p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg text-sm border border-gray-200 dark:border-gray-600">
                             <div className="flex justify-between items-center mb-1">
-                                <span className="text-gray-500 text-xs uppercase font-bold">Fecha</span>
-                                <span className="font-medium text-gray-900">{formatDateShort(registroToDelete.fecha)}</span>
+                                <span className="text-gray-500 dark:text-gray-400 text-xs uppercase font-bold">Fecha</span>
+                                <span className="font-medium text-gray-900 dark:text-white">{formatDateShort(registroToDelete.fecha)}</span>
                             </div>
                             <div className="flex justify-between items-center">
-                                <span className="text-gray-500 text-xs uppercase font-bold">Horas</span>
-                                <span className="font-medium text-indigo-600">{registroToDelete.horas}h</span>
+                                <span className="text-gray-500 dark:text-gray-400 text-xs uppercase font-bold">Horas</span>
+                                <span className="font-medium text-indigo-600 dark:text-indigo-400">{registroToDelete.horas}h</span>
                             </div>
                         </div>
                     )}

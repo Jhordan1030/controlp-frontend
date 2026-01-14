@@ -82,27 +82,27 @@ export default function Login() {
     };
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 flex items-center justify-center p-4">
+        <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 flex items-center justify-center p-4 transition-colors duration-200">
             <div className="max-w-md w-full">
                 {/* Logo y título */}
                 <div className="text-center mb-8 animate-fade-in">
                     <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-indigo-600 to-purple-600 rounded-2xl mb-4 shadow-lg">
                         <BookOpen className="w-10 h-10 text-white" />
                     </div>
-                    <h1 className="text-4xl font-bold text-gray-900 mb-2">
+                    <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-2">
                         Control de Prácticas
                     </h1>
-                    <p className="text-gray-600">
+                    <p className="text-gray-600 dark:text-gray-400">
                         Sistema de gestión universitaria
                     </p>
                 </div>
 
                 {/* Formulario */}
-                <div className="bg-white rounded-2xl shadow-2xl p-8 animate-slide-up">
+                <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl p-8 animate-slide-up transition-colors duration-200">
                     <form onSubmit={handleSubmit} className="space-y-6">
                         {/* Email */}
                         <div>
-                            <label className="block text-sm font-semibold text-gray-700 mb-2">
+                            <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
                                 Correo Electrónico
                             </label>
                             <div className="relative">
@@ -112,7 +112,7 @@ export default function Login() {
                                     name="email"
                                     value={formData.email}
                                     onChange={handleChange}
-                                    className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition"
+                                    className="w-full pl-10 pr-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition dark:bg-gray-700 dark:text-white dark:placeholder-gray-400"
                                     placeholder="tu@email.com"
                                     required
                                     disabled={loading}
@@ -122,7 +122,7 @@ export default function Login() {
 
                         {/* Password */}
                         <div>
-                            <label className="block text-sm font-semibold text-gray-700 mb-2">
+                            <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
                                 Contraseña
                             </label>
                             <div className="relative">
@@ -132,7 +132,7 @@ export default function Login() {
                                     name="password"
                                     value={formData.password}
                                     onChange={handleChange}
-                                    className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition"
+                                    className="w-full pl-10 pr-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition dark:bg-gray-700 dark:text-white dark:placeholder-gray-400"
                                     placeholder="••••••••"
                                     required
                                     disabled={loading}
@@ -142,7 +142,7 @@ export default function Login() {
 
                         {/* Error message */}
                         {error && (
-                            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl flex items-center gap-2 animate-shake">
+                            <div className="bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-300 px-4 py-3 rounded-xl flex items-center gap-2 animate-shake">
                                 <AlertCircle className="w-5 h-5 flex-shrink-0" />
                                 <span className="text-sm">{error}</span>
                             </div>
@@ -166,27 +166,27 @@ export default function Login() {
                     </form>
 
                     {/* Demo credentials */}
-                    <div className="mt-8 pt-6 border-t border-gray-200">
-                        <p className="text-xs text-gray-600 font-semibold mb-3 text-center">
+                    <div className="mt-8 pt-6 border-t border-gray-200 dark:border-gray-700">
+                        <p className="text-xs text-gray-600 dark:text-gray-400 font-semibold mb-3 text-center">
                             Credenciales de prueba:
                         </p>
                         <div className="grid grid-cols-2 gap-3">
                             <button
                                 type="button"
                                 onClick={() => fillDemoCredentials('admin')}
-                                className="px-4 py-2 bg-indigo-50 text-indigo-700 rounded-lg text-xs font-medium hover:bg-indigo-100 transition"
+                                className="px-4 py-2 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 rounded-lg text-xs font-medium hover:bg-indigo-100 dark:hover:bg-indigo-900/50 transition"
                             >
                                 Cargar Admin
                             </button>
                             <button
                                 type="button"
                                 onClick={() => fillDemoCredentials('estudiante')}
-                                className="px-4 py-2 bg-purple-50 text-purple-700 rounded-lg text-xs font-medium hover:bg-purple-100 transition"
+                                className="px-4 py-2 bg-purple-50 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 rounded-lg text-xs font-medium hover:bg-purple-100 dark:hover:bg-purple-900/50 transition"
                             >
                                 Cargar Estudiante
                             </button>
                         </div>
-                        <div className="mt-3 space-y-1 text-xs text-gray-500">
+                        <div className="mt-3 space-y-1 text-xs text-gray-500 dark:text-gray-400">
                             <p>Admin: admin@controlpracticas.com</p>
                             <p>Estudiante: juan.perez@ejemplo.com</p>
                             <p>Contraseña: <span className="font-mono">Admin123!</span> para admin</p>
@@ -196,7 +196,7 @@ export default function Login() {
                 </div>
 
                 {/* Footer */}
-                <div className="mt-6 text-center text-sm text-gray-600">
+                <div className="mt-6 text-center text-sm text-gray-600 dark:text-gray-400">
                     <p>Sistema de Control de Prácticas Universitarias</p>
                     <p className="text-xs text-gray-400 mt-1">v1.0.0 - 2025</p>
                 </div>

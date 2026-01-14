@@ -475,8 +475,8 @@ export default function EstudiantesManager() {
         <div className="space-y-6">
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                 <div>
-                    <h2 className="text-2xl font-bold text-gray-900">Estudiantes</h2>
-                    <p className="text-gray-600 mt-1">
+                    <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Estudiantes</h2>
+                    <p className="text-gray-600 dark:text-gray-400 mt-1">
                         Gestión completa de estudiantes ({estudiantes.length} total)
                     </p>
                 </div>
@@ -529,7 +529,7 @@ export default function EstudiantesManager() {
             {success && <Alert type="success" message={success} onClose={() => setSuccess('')} />}
 
             {/* Barra de Filtros */}
-            <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200 space-y-4">
+            <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 space-y-4 transition-colors duration-200">
                 <div className="flex flex-col md:flex-row gap-4">
                     <div className="flex-1 relative">
                         <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
@@ -538,14 +538,14 @@ export default function EstudiantesManager() {
                             placeholder="Buscar por nombre, apellido o email..."
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
-                            className="input-field pl-10"
+                            className="input-field pl-10 dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400"
                         />
                     </div>
                     <div className="flex gap-2 overflow-x-auto pb-2 md:pb-0">
                         <select
                             value={filterUniversidad}
                             onChange={(e) => setFilterUniversidad(e.target.value)}
-                            className="input-field min-w-[150px]"
+                            className="input-field min-w-[150px] dark:bg-gray-700 dark:border-gray-600 dark:text-white"
                         >
                             <option value="">Todas las Universidades</option>
                             {universidades.map(uni => (
@@ -555,7 +555,7 @@ export default function EstudiantesManager() {
                         <select
                             value={filterPeriodo}
                             onChange={(e) => setFilterPeriodo(e.target.value)}
-                            className="input-field min-w-[150px]"
+                            className="input-field min-w-[150px] dark:bg-gray-700 dark:border-gray-600 dark:text-white"
                         >
                             <option value="">Todos los Periodos</option>
                             {periodos.map(per => (
@@ -565,7 +565,7 @@ export default function EstudiantesManager() {
                         <select
                             value={filterEstado}
                             onChange={(e) => setFilterEstado(e.target.value)}
-                            className="input-field min-w-[120px]"
+                            className="input-field min-w-[120px] dark:bg-gray-700 dark:border-gray-600 dark:text-white"
                         >
                             <option value="all">Todos los Estados</option>
                             <option value="active">Activos</option>
@@ -573,7 +573,7 @@ export default function EstudiantesManager() {
                         </select>
                     </div>
                 </div>
-                <div className="flex justify-between items-center text-sm text-gray-500">
+                <div className="flex justify-between items-center text-sm text-gray-500 dark:text-gray-400">
                     <span>Mostrando {estudiantesFiltrados.length} estudiantes</span>
                     {(searchTerm || filterUniversidad || filterPeriodo || filterEstado !== 'all') && (
                         <button
@@ -593,48 +593,47 @@ export default function EstudiantesManager() {
 
             {/* Tabla de Estudiantes (Reemplaza Card grid para mejor densidad) */}
             {loading ? (
-                <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+                <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4 transition-colors duration-200">
                     <TableSkeleton rows={8} />
                 </div>
             ) : (
-                <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+                <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden transition-colors duration-200">
                     <div className="overflow-x-auto">
-                        <table className="min-w-full divide-y divide-gray-200">
-                            <thead className="bg-gray-50">
+                        <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                            <thead className="bg-gray-50 dark:bg-gray-700/50">
                                 <tr>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Estudiante</th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Universidad / Periodo</th>
-
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Estado</th>
-                                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Estudiante</th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Universidad / Periodo</th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Estado</th>
+                                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Acciones</th>
                                 </tr>
                             </thead>
-                            <tbody className="bg-white divide-y divide-gray-200">
+                            <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
                                 {estudiantesFiltrados.length === 0 ? (
                                     <tr>
-                                        <td colSpan="5" className="px-6 py-10 text-center text-gray-500">
+                                        <td colSpan="5" className="px-6 py-10 text-center text-gray-500 dark:text-gray-400">
                                             No se encontraron estudiantes con los filtros actuales.
                                         </td>
                                     </tr>
                                 ) : (
                                     estudiantesFiltrados.map((est) => (
-                                        <tr key={est.id} className="hover:bg-gray-50 transition-colors">
+                                        <tr key={est.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
                                             <td className="px-6 py-4 whitespace-nowrap">
                                                 <div className="flex items-center">
-                                                    <div className="flex-shrink-0 h-10 w-10 bg-indigo-100 rounded-full flex items-center justify-center text-indigo-700 font-bold">
+                                                    <div className="flex-shrink-0 h-10 w-10 bg-indigo-100 dark:bg-indigo-900/30 rounded-full flex items-center justify-center text-indigo-700 dark:text-indigo-400 font-bold">
                                                         {est.nombres.charAt(0)}{est.apellidos.charAt(0)}
                                                     </div>
                                                     <div className="ml-4">
-                                                        <div className="text-sm font-medium text-gray-900">{est.nombres} {est.apellidos}</div>
-                                                        <div className="text-sm text-gray-500">{est.email}</div>
+                                                        <div className="text-sm font-medium text-gray-900 dark:text-white">{est.nombres} {est.apellidos}</div>
+                                                        <div className="text-sm text-gray-500 dark:text-gray-400">{est.email}</div>
                                                     </div>
                                                 </div>
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap">
-                                                <div className="text-sm text-gray-900">
+                                                <div className="text-sm text-gray-900 dark:text-white">
                                                     {universidades.find(u => u.id === est.universidad_id)?.nombre || 'Sin Universidad'}
                                                 </div>
-                                                <div className="text-sm text-gray-500">
+                                                <div className="text-sm text-gray-500 dark:text-gray-400">
                                                     {periodos.find(p => p.id === est.periodo_id)?.nombre || 'Sin Periodo'}
                                                 </div>
                                             </td>
@@ -642,7 +641,9 @@ export default function EstudiantesManager() {
                                             <td className="px-6 py-4 whitespace-nowrap">
                                                 <button
                                                     onClick={() => handleToggleStatus(est)}
-                                                    className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full cursor-pointer transition-colors ${est.activo ? 'bg-green-100 text-green-800 hover:bg-green-200' : 'bg-red-100 text-red-800 hover:bg-red-200'
+                                                    className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full cursor-pointer transition-colors ${est.activo
+                                                        ? 'bg-green-100 text-green-800 hover:bg-green-200 dark:bg-green-900/30 dark:text-green-400 dark:hover:bg-green-900/50'
+                                                        : 'bg-red-100 text-red-800 hover:bg-red-200 dark:bg-red-900/30 dark:text-red-400 dark:hover:bg-red-900/50'
                                                         }`}
                                                     title="Clic para cambiar estado"
                                                 >
@@ -653,21 +654,21 @@ export default function EstudiantesManager() {
                                                 <div className="flex justify-end gap-2">
                                                     <button
                                                         onClick={() => handleViewDetails(est)}
-                                                        className="text-blue-600 hover:text-blue-900 p-1 hover:bg-blue-50 rounded"
+                                                        className="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300 p-1 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded"
                                                         title="Ver Detalles"
                                                     >
                                                         <Eye className="w-4 h-4" />
                                                     </button>
                                                     <button
                                                         onClick={() => handleEdit(est)}
-                                                        className="text-indigo-600 hover:text-indigo-900 p-1 hover:bg-indigo-50 rounded"
+                                                        className="text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-300 p-1 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 rounded"
                                                         title="Editar"
                                                     >
                                                         <Edit className="w-4 h-4" />
                                                     </button>
                                                     <button
                                                         onClick={() => handleGeneratePassword(est)}
-                                                        className="text-amber-600 hover:text-amber-900 p-1 hover:bg-amber-50 rounded"
+                                                        className="text-amber-600 hover:text-amber-900 dark:text-amber-400 dark:hover:text-amber-300 p-1 hover:bg-amber-50 dark:hover:bg-amber-900/30 rounded"
                                                         title="Reestablecer Contraseña"
                                                     >
                                                         <Key className="w-4 h-4" />
@@ -695,7 +696,7 @@ export default function EstudiantesManager() {
                 <form onSubmit={handleSubmit} className="space-y-4">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                                 Nombres
                             </label>
                             <input
@@ -703,13 +704,13 @@ export default function EstudiantesManager() {
                                 name="nombres"
                                 value={formData.nombres}
                                 onChange={handleChange}
-                                className="input-field"
+                                className="input-field dark:bg-gray-700 dark:border-gray-600 dark:text-white"
                                 required
                             />
                         </div>
 
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                                 Apellidos
                             </label>
                             <input
@@ -717,14 +718,14 @@ export default function EstudiantesManager() {
                                 name="apellidos"
                                 value={formData.apellidos}
                                 onChange={handleChange}
-                                className="input-field"
+                                className="input-field dark:bg-gray-700 dark:border-gray-600 dark:text-white"
                                 required
                             />
                         </div>
                     </div>
 
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                             Email
                         </label>
                         <input
@@ -732,13 +733,13 @@ export default function EstudiantesManager() {
                             name="email"
                             value={formData.email}
                             onChange={handleChange}
-                            className="input-field"
+                            className="input-field dark:bg-gray-700 dark:border-gray-600 dark:text-white"
                             required
                         />
                     </div>
 
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                             {isEditing ? 'Nueva Contraseña (Opcional)' : 'Contraseña'}
                         </label>
                         <div className="relative">
@@ -748,7 +749,7 @@ export default function EstudiantesManager() {
                                 name="password"
                                 value={formData.password}
                                 onChange={handleChange}
-                                className="input-field pl-10"
+                                className="input-field pl-10 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
                                 minLength="6"
                                 required={!isEditing}
                                 placeholder={isEditing ? "Dejar en blanco para mantener actual" : ""}
@@ -757,14 +758,14 @@ export default function EstudiantesManager() {
                     </div>
 
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                             Universidad
                         </label>
                         <select
                             name="universidad_id"
                             value={formData.universidad_id}
                             onChange={handleChange}
-                            className="input-field"
+                            className="input-field dark:bg-gray-700 dark:border-gray-600 dark:text-white"
                         >
                             <option value="">Sin asignar</option>
                             {universidades.map((uni) => (
@@ -776,14 +777,14 @@ export default function EstudiantesManager() {
                     </div>
 
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                             Periodo
                         </label>
                         <select
                             name="periodo_id"
                             value={formData.periodo_id}
                             onChange={handleChange}
-                            className="input-field"
+                            className="input-field dark:bg-gray-700 dark:border-gray-600 dark:text-white"
                         >
                             <option value="">Sin asignar</option>
                             {periodos.map((periodo) => (

@@ -23,13 +23,26 @@ export default function AdminDashboard({ setActiveTab }) {
             if (!stats) setLoading(true); // Solo mostrar skeleton en carga inicial completa
             else setRefreshing(true); // Mostrar spinner de refresh si ya hay datos
 
-            const [statsData, activityData] = await Promise.all([
+            const [statsData, activityData, periodosData] = await Promise.all([
                 adminAPI.getDashboard(),
-                adminAPI.getAuditoria({ limit: 10 }) // Aumentamos a 10 para mejor export
+                adminAPI.getAuditoria({ limit: 10 }), // Aumentamos a 10 para mejor export
+                adminAPI.getPeriodos()
             ]);
 
             if (statsData.success) {
-                setStats(statsData.estadisticas);
+                // Fix: Calcular periodos activos localmente si la API de periodos responde
+                let periodosActivosCalc = statsData.estadisticas.periodosActivos;
+
+                if (periodosData.success && periodosData.periodos) {
+                    // Consideramos activos aquellos marcados como true en la BD
+                    // Opcional: Podríamos validar fechas aquí también si se requiere "En curso por fecha"
+                    periodosActivosCalc = periodosData.periodos.filter(p => p.activo).length;
+                }
+
+                setStats({
+                    ...statsData.estadisticas,
+                    periodosActivos: periodosActivosCalc
+                });
             } else {
                 setError(statsData.error || 'Error al cargar estadísticas');
             }
@@ -112,19 +125,19 @@ export default function AdminDashboard({ setActiveTab }) {
             {/* Header */}
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                 <div>
-                    <h2 className="text-3xl font-bold text-gray-900">Dashboard Administrativo</h2>
-                    <p className="text-gray-500 mt-1">Bienvenido al panel de control general del sistema.</p>
+                    <h2 className="text-3xl font-bold text-gray-900 dark:text-white">Dashboard Administrativo</h2>
+                    <p className="text-gray-500 dark:text-gray-400 mt-1">Bienvenido al panel de control general del sistema.</p>
                 </div>
                 <div className="flex items-center gap-4">
                     {lastUpdated && (
-                        <span className="text-sm text-gray-500 hidden sm:block">
+                        <span className="text-sm text-gray-500 dark:text-gray-400 hidden sm:block">
                             Actualizado: {lastUpdated.toLocaleTimeString()}
                         </span>
                     )}
                     <button
                         onClick={loadDashboardData}
                         disabled={refreshing}
-                        className={`p-2 rounded-lg border border-gray-200 hover:bg-gray-50 text-gray-600 transition-all ${refreshing ? 'animate-spin' : 'hover:rotate-180'}`}
+                        className={`p-2 rounded-lg border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300 transition-all ${refreshing ? 'animate-spin' : 'hover:rotate-180'}`}
                         title="Actualizar datos"
                     >
                         <RefreshCcw className="w-5 h-5" />
@@ -174,9 +187,9 @@ export default function AdminDashboard({ setActiveTab }) {
                 {/* Columna Izquierda: Charts & Accesos Rápidos (2/3 ancho) */}
                 <div className="lg:col-span-2 space-y-8">
                     {/* Charts Section */}
-                    <section className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-                        <h3 className="text-lg font-bold text-gray-900 mb-6 flex items-center gap-2">
-                            <TrendingUp className="w-5 h-5 text-gray-500" />
+                    <section className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 transition-colors duration-200">
+                        <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-6 flex items-center gap-2">
+                            <TrendingUp className="w-5 h-5 text-gray-500 dark:text-gray-400" />
                             Resumen de Entidades
                         </h3>
                         <div className="h-[300px] w-full">
@@ -197,10 +210,10 @@ export default function AdminDashboard({ setActiveTab }) {
                     </section>
 
                     {/* Quick Actions */}
-                    <section className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-                        <div className="p-6 border-b border-gray-100">
-                            <h3 className="text-lg font-bold text-gray-900 flex items-center gap-2">
-                                <TrendingUp className="w-5 h-5 text-gray-500" />
+                    <section className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden transition-colors duration-200">
+                        <div className="p-6 border-b border-gray-100 dark:border-gray-700">
+                            <h3 className="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                                <TrendingUp className="w-5 h-5 text-gray-500 dark:text-gray-400" />
                                 Accesos Rápidos
                             </h3>
                         </div>
@@ -209,16 +222,16 @@ export default function AdminDashboard({ setActiveTab }) {
                                 <button
                                     key={idx}
                                     onClick={item.action}
-                                    className="flex items-start p-4 rounded-xl border border-gray-100 hover:border-blue-200 hover:bg-blue-50 transition-all duration-200 group text-left"
+                                    className="flex items-start p-4 rounded-xl border border-gray-100 dark:border-gray-700 hover:border-blue-200 dark:hover:border-blue-900 hover:bg-blue-50 dark:hover:bg-blue-900/10 transition-all duration-200 group text-left"
                                 >
                                     <div className={`p-3 rounded-lg ${item.color} mr-4 group-hover:scale-110 transition-transform`}>
                                         <item.icon className="w-6 h-6" />
                                     </div>
                                     <div>
-                                        <h4 className="font-semibold text-gray-900 group-hover:text-blue-700 transition-colors">
+                                        <h4 className="font-semibold text-gray-900 dark:text-gray-200 group-hover:text-blue-700 dark:group-hover:text-blue-400 transition-colors">
                                             {item.title}
                                         </h4>
-                                        <p className="text-sm text-gray-500 mt-1">
+                                        <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
                                             {item.desc}
                                         </p>
                                     </div>
@@ -230,15 +243,15 @@ export default function AdminDashboard({ setActiveTab }) {
 
                 {/* Columna Derecha: Actividad Reciente (1/3 ancho) */}
                 <div className="lg:col-span-1">
-                    <section className="bg-white rounded-xl shadow-sm border border-gray-200 h-full flex flex-col">
-                        <div className="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
-                            <h3 className="text-lg font-bold text-gray-900 flex items-center gap-2">
-                                <Clock className="w-5 h-5 text-gray-500" />
+                    <section className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 h-full flex flex-col transition-colors duration-200">
+                        <div className="p-6 border-b border-gray-100 dark:border-gray-700 flex justify-between items-center bg-gray-50/50 dark:bg-gray-700/30">
+                            <h3 className="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                                <Clock className="w-5 h-5 text-gray-500 dark:text-gray-400" />
                                 Actividad
                             </h3>
                             <button
                                 onClick={handleExportActivity}
-                                className="p-1.5 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors"
+                                className="p-1.5 text-gray-500 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-md transition-colors"
                                 title="Exportar a CSV"
                             >
                                 <Download className="w-4 h-4" />
@@ -248,19 +261,19 @@ export default function AdminDashboard({ setActiveTab }) {
                             {recentActivity?.length > 0 ? (
                                 <div className="divide-y divide-gray-100">
                                     {recentActivity.map((log) => (
-                                        <div key={log.id} className="p-4 hover:bg-gray-50 transition-colors">
+                                        <div key={log.id} className="p-4 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
                                             <div className="flex items-start gap-3">
-                                                <div className={`mt-1 p-1.5 rounded-full flex-shrink-0 ${log.accion.includes('CREAR') ? 'bg-green-100 text-green-600' :
-                                                    log.accion.includes('ELIMINAR') || log.accion.includes('DESACTIVAR') ? 'bg-red-100 text-red-600' :
-                                                        'bg-blue-100 text-blue-600'
+                                                <div className={`mt-1 p-1.5 rounded-full flex-shrink-0 ${log.accion.includes('CREAR') ? 'bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400' :
+                                                    log.accion.includes('ELIMINAR') || log.accion.includes('DESACTIVAR') ? 'bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400' :
+                                                        'bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400'
                                                     }`}>
                                                     <Bell className="w-3 h-3" />
                                                 </div>
                                                 <div className="flex-1 min-w-0">
-                                                    <p className="text-sm font-medium text-gray-900 truncate">
+                                                    <p className="text-sm font-medium text-gray-900 dark:text-gray-200 truncate">
                                                         {log.accion}
                                                     </p>
-                                                    <p className="text-xs text-gray-500 truncate" title={log.detalles ? JSON.stringify(log.detalles) : ''}>
+                                                    <p className="text-xs text-gray-500 dark:text-gray-400 truncate" title={log.detalles ? JSON.stringify(log.detalles) : ''}>
                                                         {log.detalles ? JSON.stringify(log.detalles) : 'Sin detalles'}
                                                     </p>
                                                     <p className="text-xs text-gray-400 mt-1">
@@ -277,10 +290,10 @@ export default function AdminDashboard({ setActiveTab }) {
                                 </div>
                             )}
                         </div>
-                        <div className="p-4 border-t border-gray-100 text-center bg-gray-50/50 rounded-b-xl">
+                        <div className="p-4 border-t border-gray-100 dark:border-gray-700 text-center bg-gray-50/50 dark:bg-gray-700/30 rounded-b-xl">
                             <button
                                 onClick={() => setActiveTab('auditoria')}
-                                className="text-sm text-blue-600 hover:text-blue-800 font-medium hover:underline"
+                                className="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 font-medium hover:underline"
                             >
                                 Ver historial completo
                             </button>

@@ -10,17 +10,12 @@ import MisPeriodos from '../components/estudiante/MisPeriodos';
 export default function EstudiantePanel() {
     const [activeTab, setActiveTab] = useState('dashboard');
     const [sidebarOpen, setSidebarOpen] = useState(false);
-    const [refreshKey, setRefreshKey] = useState(0);
 
-    const handleRegistroSuccess = () => {
-        setRefreshKey(prev => prev + 1);
-        setActiveTab('dashboard');
-    };
 
     const renderContent = () => {
         switch (activeTab) {
             case 'dashboard':
-                return <EstudianteDashboard key={refreshKey} />;
+                return <EstudianteDashboard />;
             case 'mis-periodos':
                 return <MisPeriodos />;
             case 'registros':
@@ -31,7 +26,7 @@ export default function EstudiantePanel() {
     };
 
     return (
-        <div className="min-h-screen bg-gray-50 pt-16">
+        <div className="min-h-screen bg-gray-50 dark:bg-gray-900 pt-16 transition-colors duration-200">
             <Navbar onMenuClick={() => setSidebarOpen(true)} />
 
             <Sidebar

@@ -36,7 +36,7 @@ export default function Sidebar({ activeTab, setActiveTab, isOpen, onClose }) {
             <aside
                 className={`
           fixed top-0 left-0 h-full z-[70] lg:z-30
-          w-64 bg-white shadow-xl
+          w-64 bg-white dark:bg-gray-800 shadow-xl
           transform transition-transform duration-300 ease-in-out
           ${isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
           lg:pt-16
@@ -47,9 +47,9 @@ export default function Sidebar({ activeTab, setActiveTab, isOpen, onClose }) {
                     <div className="lg:hidden flex justify-end p-4">
                         <button
                             onClick={onClose}
-                            className="p-2 hover:bg-gray-100 rounded-lg"
+                            className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg"
                         >
-                            <X className="w-6 h-6 text-gray-600" />
+                            <X className="w-6 h-6 text-gray-600 dark:text-gray-300" />
                         </button>
                     </div>
 
@@ -71,7 +71,7 @@ export default function Sidebar({ activeTab, setActiveTab, isOpen, onClose }) {
                     transition-all duration-200
                     ${isActive
                                             ? 'bg-indigo-600 text-white shadow-lg'
-                                            : 'text-gray-700 hover:bg-gray-100'
+                                            : 'text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700'
                                         }
                   `}
                                 >
@@ -83,8 +83,8 @@ export default function Sidebar({ activeTab, setActiveTab, isOpen, onClose }) {
                     </nav>
 
                     {/* Footer */}
-                    <div className="p-4 border-t border-gray-200">
-                        <div className="text-xs text-gray-500 text-center">
+                    <div className="p-4 border-t border-gray-200 dark:border-gray-700">
+                        <div className="text-xs text-gray-500 dark:text-gray-400 text-center">
                             <p>Sistema de Control de Prácticas</p>
                             <p className="mt-1">v1.0.0</p>
                         </div>

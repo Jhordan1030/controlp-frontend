@@ -35,7 +35,7 @@ export default function AdminPanel() {
     };
 
     return (
-        <div className="min-h-screen bg-gray-50 pt-16">
+        <div className="min-h-screen bg-gray-50 dark:bg-gray-900 pt-16 transition-colors duration-200">
             <Navbar
                 onMenuClick={() => setSidebarOpen(true)}
                 onProfileClick={() => setActiveTab('perfil')}

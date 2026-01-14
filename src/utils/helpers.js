@@ -78,7 +78,7 @@ export const parseJwt = (token) => {
         }).join(''));
 
         return JSON.parse(jsonPayload);
-    } catch (e) {
+    } catch {
         return null;
     }
 };

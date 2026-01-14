@@ -121,8 +121,8 @@ export default function UniversidadesManager() {
         <div className="space-y-6">
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                 <div>
-                    <h2 className="text-2xl font-bold text-gray-900">Universidades</h2>
-                    <p className="text-gray-600 mt-1">Gestiona las universidades del sistema</p>
+                    <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Universidades</h2>
+                    <p className="text-gray-600 dark:text-gray-400 mt-1">Gestiona las universidades del sistema</p>
                 </div>
                 <div className="flex gap-2">
                     <button
@@ -161,7 +161,7 @@ export default function UniversidadesManager() {
             {success && <Alert type="success" message={success} onClose={() => setSuccess('')} />}
 
             {/* Search Bar */}
-            <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
+            <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 transition-colors duration-200">
                 <div className="relative">
                     <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
                     <input
@@ -169,7 +169,7 @@ export default function UniversidadesManager() {
                         placeholder="Buscar universidad por nombre..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
-                        className="input-field pl-10"
+                        className="input-field pl-10 dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400"
                     />
                 </div>
             </div>
@@ -184,12 +184,12 @@ export default function UniversidadesManager() {
                             <Card key={uni.id}>
                                 <div className="flex items-start justify-between">
                                     <div className="flex items-center gap-3">
-                                        <div className="w-12 h-12 bg-indigo-100 rounded-lg flex items-center justify-center">
-                                            <Building2 className="w-6 h-6 text-indigo-600" />
+                                        <div className="w-12 h-12 bg-indigo-100 dark:bg-indigo-900/30 rounded-lg flex items-center justify-center">
+                                            <Building2 className="w-6 h-6 text-indigo-600 dark:text-indigo-400" />
                                         </div>
                                         <div>
-                                            <h3 className="font-semibold text-gray-900">{uni.nombre}</h3>
-                                            <p className="text-sm text-gray-600">
+                                            <h3 className="font-semibold text-gray-900 dark:text-white">{uni.nombre}</h3>
+                                            <p className="text-sm text-gray-600 dark:text-gray-400">
                                                 {uni.activa ? (
                                                     <span className="text-green-600">Activa</span>
                                                 ) : (
@@ -201,7 +201,7 @@ export default function UniversidadesManager() {
                                     <div className="flex gap-1">
                                         <button
                                             onClick={() => handleVerPeriodos(uni)}
-                                            className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition"
+                                            className="p-2 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-lg transition"
                                             title="Ver Periodos"
                                         >
                                             <Eye className="w-5 h-5" />
@@ -214,7 +214,7 @@ export default function UniversidadesManager() {
                                                 setActiva(uni.activa);
                                                 setShowModal(true);
                                             }}
-                                            className="p-2 text-indigo-600 hover:bg-indigo-50 rounded-lg transition"
+                                            className="p-2 text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 rounded-lg transition"
                                             title="Editar Universidad"
                                         >
                                             <Edit2 className="w-5 h-5" />
@@ -224,7 +224,7 @@ export default function UniversidadesManager() {
                             </Card>
                         ))
                     ) : (
-                        <div className="col-span-full py-8 text-center text-gray-500">
+                        <div className="col-span-full py-8 text-center text-gray-500 dark:text-gray-400">
                             No se encontraron universidades con ese nombre.
                         </div>
                     )}
@@ -240,14 +240,14 @@ export default function UniversidadesManager() {
             >
                 <form onSubmit={handleSubmit} className="space-y-4">
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                             Nombre de la Universidad
                         </label>
                         <input
                             type="text"
                             value={nombre}
                             onChange={(e) => setNombre(e.target.value)}
-                            className="input-field"
+                            className="input-field dark:bg-gray-700 dark:border-gray-600 dark:text-white"
                             placeholder="Ej: Universidad Técnica del Norte"
                             required
                         />
@@ -262,7 +262,7 @@ export default function UniversidadesManager() {
                                 onChange={(e) => setActiva(e.target.checked)}
                                 className="w-4 h-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500"
                             />
-                            <label htmlFor="activa" className="text-sm font-medium text-gray-700">
+                            <label htmlFor="activa" className="text-sm font-medium text-gray-700 dark:text-gray-300">
                                 Universidad Activa
                             </label>
                         </div>
@@ -292,28 +292,28 @@ export default function UniversidadesManager() {
             >
                 <div className="space-y-4">
                     {periodos.filter(p => p.universidad_id === currentId).length === 0 ? (
-                        <p className="text-gray-500 text-center py-4">No hay periodos registrados para esta universidad.</p>
+                        <p className="text-gray-500 dark:text-gray-400 text-center py-4">No hay periodos registrados para esta universidad.</p>
                     ) : (
                         <div className="overflow-x-auto">
-                            <table className="min-w-full divide-y divide-gray-200">
-                                <thead className="bg-gray-50">
+                            <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                                <thead className="bg-gray-50 dark:bg-gray-700/50">
                                     <tr>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nombre</th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Inicio</th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fin</th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Estado</th>
+                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Nombre</th>
+                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Inicio</th>
+                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Fin</th>
+                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Estado</th>
                                     </tr>
                                 </thead>
-                                <tbody className="bg-white divide-y divide-gray-200">
+                                <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
                                     {periodos
                                         .filter(p => p.universidad_id === currentId)
                                         .map((periodo) => (
                                             <tr key={periodo.id}>
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{periodo.nombre}</td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{new Date(periodo.fecha_inicio).toLocaleDateString()}</td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{new Date(periodo.fecha_fin).toLocaleDateString()}</td>
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">{periodo.nombre}</td>
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">{new Date(periodo.fecha_inicio).toLocaleDateString()}</td>
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">{new Date(periodo.fecha_fin).toLocaleDateString()}</td>
                                                 <td className="px-6 py-4 whitespace-nowrap">
-                                                    <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${periodo.activo ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                                                    <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${periodo.activo ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400' : 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400'}`}>
                                                         {periodo.activo ? 'Activo' : 'Inactivo'}
                                                     </span>
                                                 </td>

@@ -117,9 +117,9 @@ export default function EstudianteDashboard() {
     return (
         <div className="space-y-6 animate-fadeIn">
             {/* Header con Bienvenida y Botón */}
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 transition-colors duration-200">
                 <div>
-                    <h1 className="text-2xl font-bold text-gray-900">
+                    <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
                         Hola, {estudiante.nombres?.split(' ')[0]} 👋
                     </h1>
                     <div className="flex items-center gap-2 text-gray-500 mt-1">
@@ -165,9 +165,9 @@ export default function EstudianteDashboard() {
                 </div>
 
                 {/* Progreso */}
-                <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+                <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm border border-gray-100 dark:border-gray-700 transition-colors duration-200">
                     <div className="flex justify-between items-start mb-4">
-                        <div className="p-2 bg-green-50 rounded-lg">
+                        <div className="p-2 bg-green-50 dark:bg-green-900/20 rounded-lg">
                             <CheckCircle className="w-6 h-6 text-green-600" />
                         </div>
                         <span className="text-xs font-medium bg-green-50 text-green-700 px-2 py-1 rounded-full">
@@ -176,9 +176,9 @@ export default function EstudianteDashboard() {
                     </div>
                     <div>
                         <div className="flex justify-between items-end mb-2">
-                            <h3 className="text-3xl font-bold text-gray-900">{porcentaje}%</h3>
+                            <h3 className="text-3xl font-bold text-gray-900 dark:text-white">{porcentaje}%</h3>
                         </div>
-                        <div className="w-full bg-gray-100 rounded-full h-2">
+                        <div className="w-full bg-gray-100 dark:bg-gray-700 rounded-full h-2">
                             <div
                                 className="bg-green-500 h-2 rounded-full transition-all duration-1000"
                                 style={{ width: `${Math.min(porcentaje, 100)}%` }}
@@ -194,9 +194,9 @@ export default function EstudianteDashboard() {
                 </div>
 
                 {/* Info Card (Placeholder for now since we have strings only) */}
-                <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+                <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm border border-gray-100 dark:border-gray-700 transition-colors duration-200">
                     <div className="flex justify-between items-start mb-4">
-                        <div className="p-2 bg-blue-50 rounded-lg">
+                        <div className="p-2 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
                             <Calendar className="w-6 h-6 text-blue-600" />
                         </div>
                         <span className="text-xs font-medium bg-blue-50 text-blue-700 px-2 py-1 rounded-full">
@@ -204,7 +204,7 @@ export default function EstudianteDashboard() {
                         </span>
                     </div>
                     <div>
-                        <h3 className="text-lg font-bold text-gray-900 mb-1">
+                        <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-1">
                             {estudiante.periodo || 'Sin periodo'}
                         </h3>
                         <div className="space-y-1 mt-2">
@@ -218,8 +218,8 @@ export default function EstudianteDashboard() {
 
             {/* Análisis Semanal Chart */}
             {weeklyData.length > 0 && (
-                <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-                    <h3 className="text-lg font-bold text-gray-900 mb-6 flex items-center gap-2">
+                <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 p-6 transition-colors duration-200">
+                    <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-6 flex items-center gap-2">
                         <TrendingUp className="w-5 h-5 text-indigo-600" />
                         Progreso Semanal (Horas)
                     </h3>
@@ -245,7 +245,7 @@ export default function EstudianteDashboard() {
                 {/* Left Column: Recent Activity */}
                 <div className="lg:col-span-2 space-y-6">
                     <div className="flex items-center justify-between">
-                        <h2 className="text-lg font-bold text-gray-900">Actividad Reciente</h2>
+                        <h2 className="text-lg font-bold text-gray-900 dark:text-white">Actividad Reciente</h2>
                     </div>
 
                     <Card className="overflow-hidden">
@@ -272,10 +272,10 @@ export default function EstudianteDashboard() {
                             </div>
                         ) : (
                             <div className="text-center py-8">
-                                <div className="bg-gray-50 p-3 rounded-full inline-flex mb-3">
-                                    <AlertCircle className="w-6 h-6 text-gray-400" />
+                                <div className="bg-gray-50 dark:bg-gray-700 p-3 rounded-full inline-flex mb-3">
+                                    <AlertCircle className="w-6 h-6 text-gray-400 dark:text-gray-300" />
                                 </div>
-                                <p className="text-gray-500 text-sm">No hay registros recientes</p>
+                                <p className="text-gray-500 dark:text-gray-400 text-sm">No hay registros recientes</p>
                             </div>
                         )}
                     </Card>
