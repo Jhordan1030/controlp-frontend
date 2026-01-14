@@ -5,6 +5,8 @@ import Sidebar from '../components/common/Sidebar';
 import EstudianteDashboard from '../components/estudiante/EstudianteDashboard';
 import MisRegistros from '../components/estudiante/MisRegistros';
 import MisPeriodos from '../components/estudiante/MisPeriodos';
+import ComingSoon from '../components/common/ComingSoon';
+import MiPerfil from '../components/estudiante/MiPerfil';
 
 
 export default function EstudiantePanel() {
@@ -20,6 +22,10 @@ export default function EstudiantePanel() {
                 return <MisPeriodos />;
             case 'registros':
                 return <MisRegistros />;
+            case 'certificados':
+                return <ComingSoon title="Certificados" subtitle="Pronto podrás generar y descargar tus certificados de prácticas directamente desde aquí." />;
+            case 'perfil':
+                return <MiPerfil />;
             default:
                 return <EstudianteDashboard />;
         }
@@ -27,7 +33,10 @@ export default function EstudiantePanel() {
 
     return (
         <div className="min-h-screen bg-gray-50 dark:bg-gray-900 pt-16 transition-colors duration-200">
-            <Navbar onMenuClick={() => setSidebarOpen(true)} />
+            <Navbar
+                onMenuClick={() => setSidebarOpen(true)}
+                onProfileClick={() => setActiveTab('perfil')}
+            />
 
             <Sidebar
                 activeTab={activeTab}

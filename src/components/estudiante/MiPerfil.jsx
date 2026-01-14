@@ -1,38 +1,31 @@
 import React, { useState, useEffect } from 'react';
-import { User, Lock, Save, Mail, Shield, AlertCircle, CheckCircle, Loader2 } from 'lucide-react';
-import { useAuth } from '../../context/AuthContext';
-import { authAPI } from '../../services/api';
-import { handleApiError } from '../../utils/helpers';
+import { User, Lock, Save, Mail, Building2, AlertCircle, CheckCircle, Loader2 } from 'lucide-react';
+import { useAuth } from '../../context/AuthContext'; // Assuming context is available
+import { estudianteAPI } from '../../services/api';
 
-export default function AdminProfile() {
-    const { user, updateUser } = useAuth();
+export default function MiPerfil() {
+    const { user } = useAuth();
     const [activeTab, setActiveTab] = useState('general');
     const [loading, setLoading] = useState(false);
-    const [message, setMessage] = useState({ type: '', text: '' });
-
-    // Profile Form Data
-    const [profileData, setProfileData] = useState({
+    const [userData, setUserData] = useState({
         nombres: '',
         apellidos: '',
-        email: ''
+        email: '',
+        universidad: '',
+        periodo: ''
     });
 
-    // Password Form Data
     const [passwordData, setPasswordData] = useState({
-        password_actual: '',
-        nueva_password: '',
-        confirmar_password: ''
+        currentPassword: '',
+        newPassword: '',
+        confirmPassword: ''
     });
+
+    const [message, setMessage] = useState({ type: '', text: '' });
 
     useEffect(() => {
-        if (user) {
-            setProfileData({
-                nombres: user.nombres || '',
-                apellidos: user.apellidos || '',
-                email: user.email || ''
-            });
-        }
-    }, [user]);
+        loadUserProfile();
+    }, []);
 
     // Auto-dismiss message after 5 seconds
     useEffect(() => {
@@ -44,86 +37,68 @@ export default function AdminProfile() {
         }
     }, [message]);
 
-    const handleProfileChange = (e) => {
-        setProfileData({
-            ...profileData,
-            [e.target.name]: e.target.value
-        });
-    };
-
-    const handlePasswordChange = (e) => {
-        setPasswordData({
-            ...passwordData,
-            [e.target.name]: e.target.value
-        });
-    };
-
-    const handleUpdateProfile = async (e) => {
-        e.preventDefault();
-        setMessage({ type: '', text: '' });
-        setLoading(true);
-
+    const loadUserProfile = async () => {
         try {
-            const data = await authAPI.actualizarPerfil(profileData);
+            setLoading(true);
+            const data = await estudianteAPI.getPerfil();
             if (data.success) {
-                updateUser(data.user || profileData);
-                setMessage({ type: 'success', text: 'Perfil actualizado correctamente.' });
-            } else {
-                setMessage({ type: 'error', text: data.error || 'Error al actualizar perfil.' });
+                setUserData({
+                    nombres: data.estudiante.nombres,
+                    apellidos: data.estudiante.apellidos,
+                    email: data.estudiante.email,
+                    universidad: data.estudiante.universidad || 'No asignada',
+                    periodo: data.estudiante.periodo_id || 'No activo'
+                });
             }
-        } catch (err) {
-            setMessage({ type: 'error', text: handleApiError(err) });
+        } catch (error) {
+            console.error('Error cargando perfil:', error);
         } finally {
             setLoading(false);
         }
     };
 
-    const handleChangePassword = async (e) => {
+    const handleInfoSubmit = async (e) => {
+        e.preventDefault();
+        setLoading(true);
+        setMessage({ type: '', text: '' });
+
+        // Simulation of API call
+        setTimeout(() => {
+            setLoading(false);
+            setMessage({
+                type: 'info',
+                text: 'La funcionalidad de actualización estará disponible pronto (requiere actualización del servidor).'
+            });
+        }, 1500);
+    };
+
+    const handlePasswordSubmit = async (e) => {
         e.preventDefault();
         setMessage({ type: '', text: '' });
 
-        if (passwordData.nueva_password !== passwordData.confirmar_password) {
+        if (passwordData.newPassword !== passwordData.confirmPassword) {
             setMessage({ type: 'error', text: 'Las nuevas contraseñas no coinciden.' });
             return;
         }
 
-        if (passwordData.nueva_password.length < 6) {
-            setMessage({ type: 'error', text: 'La contraseña debe tener al menos 6 caracteres.' });
-            return;
-        }
-
         setLoading(true);
-
-        try {
-            // Note: reusing authAPI endpoint for generic auth user (admin)
-            const data = await authAPI.cambiarPassword(
-                passwordData.password_actual,
-                passwordData.nueva_password
-            );
-
-            if (data.success) {
-                setMessage({ type: 'success', text: 'Contraseña actualizada correctamente.' });
-                setPasswordData({
-                    password_actual: '',
-                    nueva_password: '',
-                    confirmar_password: ''
-                });
-            } else {
-                setMessage({ type: 'error', text: data.error || 'Error al cambiar contraseña.' });
-            }
-        } catch (err) {
-            setMessage({ type: 'error', text: handleApiError(err) });
-        } finally {
+        // Simulation of API call
+        setTimeout(() => {
             setLoading(false);
-        }
+            setMessage({
+                type: 'info',
+                text: 'El cambio de contraseña estará disponible pronto (requiere actualización del servidor).'
+            });
+            setPasswordData({ currentPassword: '', newPassword: '', confirmPassword: '' });
+        }, 1500);
     };
 
     return (
         <div className="space-y-6 animate-fadeIn max-w-4xl mx-auto">
             <div>
-                <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Perfil de Administrador</h2>
+                <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Mi Perfil</h2>
                 <p className="text-gray-600 dark:text-gray-400 mt-1">
-                    Gestiona tu información personal y seguridad
+                    Administra tu información personal y seguridad
                 </p>
             </div>
 
@@ -167,7 +142,7 @@ export default function AdminProfile() {
 
                 <div className="p-6 md:p-8">
                     {activeTab === 'general' ? (
-                        <form onSubmit={handleUpdateProfile} className="space-y-6">
+                        <form onSubmit={handleInfoSubmit} className="space-y-6">
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div className="space-y-2">
                                     <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Nombres</label>
@@ -175,11 +150,10 @@ export default function AdminProfile() {
                                         <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                                         <input
                                             type="text"
-                                            name="nombres"
-                                            value={profileData.nombres}
-                                            onChange={handleProfileChange}
-                                            required
+                                            value={userData.nombres}
+                                            onChange={(e) => setUserData({ ...userData, nombres: e.target.value })}
                                             className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-colors"
+                                            placeholder="Tus nombres"
                                         />
                                     </div>
                                 </div>
@@ -189,11 +163,10 @@ export default function AdminProfile() {
                                         <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                                         <input
                                             type="text"
-                                            name="apellidos"
-                                            value={profileData.apellidos}
-                                            onChange={handleProfileChange}
-                                            required
+                                            value={userData.apellidos}
+                                            onChange={(e) => setUserData({ ...userData, apellidos: e.target.value })}
                                             className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-colors"
+                                            placeholder="Tus apellidos"
                                         />
                                     </div>
                                 </div>
@@ -203,13 +176,24 @@ export default function AdminProfile() {
                                         <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                                         <input
                                             type="email"
-                                            name="email"
-                                            value={profileData.email}
+                                            value={userData.email}
                                             disabled
                                             className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-600/50 text-gray-500 dark:text-gray-400 cursor-not-allowed"
                                         />
                                     </div>
                                     <p className="text-xs text-gray-500 mt-1">El email no se puede cambiar.</p>
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Universidad</label>
+                                    <div className="relative">
+                                        <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                                        <input
+                                            type="text"
+                                            value={userData.universidad}
+                                            disabled
+                                            className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-600/50 text-gray-500 dark:text-gray-400 cursor-not-allowed"
+                                        />
+                                    </div>
                                 </div>
                             </div>
 
@@ -225,7 +209,7 @@ export default function AdminProfile() {
                             </div>
                         </form>
                     ) : (
-                        <form onSubmit={handleChangePassword} className="space-y-6 max-w-lg">
+                        <form onSubmit={handlePasswordSubmit} className="space-y-6 max-w-lg">
                             <div className="space-y-4">
                                 <div className="space-y-2">
                                     <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Contraseña Actual</label>
@@ -233,11 +217,11 @@ export default function AdminProfile() {
                                         <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                                         <input
                                             type="password"
-                                            name="password_actual"
-                                            value={passwordData.password_actual}
-                                            onChange={handlePasswordChange}
+                                            value={passwordData.currentPassword}
+                                            onChange={(e) => setPasswordData({ ...passwordData, currentPassword: e.target.value })}
                                             required
                                             className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-colors"
+                                            placeholder="••••••••"
                                         />
                                     </div>
                                 </div>
@@ -247,9 +231,8 @@ export default function AdminProfile() {
                                         <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                                         <input
                                             type="password"
-                                            name="nueva_password"
-                                            value={passwordData.nueva_password}
-                                            onChange={handlePasswordChange}
+                                            value={passwordData.newPassword}
+                                            onChange={(e) => setPasswordData({ ...passwordData, newPassword: e.target.value })}
                                             required
                                             minLength={6}
                                             className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-colors"
@@ -263,9 +246,8 @@ export default function AdminProfile() {
                                         <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                                         <input
                                             type="password"
-                                            name="confirmar_password"
-                                            value={passwordData.confirmar_password}
-                                            onChange={handlePasswordChange}
+                                            value={passwordData.confirmPassword}
+                                            onChange={(e) => setPasswordData({ ...passwordData, confirmPassword: e.target.value })}
                                             required
                                             minLength={6}
                                             className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-colors"
