@@ -27,22 +27,28 @@ export default function MisRegistros() {
     const loadRegistros = async () => {
         try {
             setLoading(true);
-            const [registrosData, dashboardData, perfilData] = await Promise.all([
-                estudianteAPI.getRegistros(),
+
+            // 1. Primero obtenemos el contexto (Dashboard y Perfil) para saber el periodo activo
+            const [dashboardData, perfilData] = await Promise.all([
                 estudianteAPI.getDashboard(),
                 estudianteAPI.getPerfil()
             ]);
 
+            // 2. Determinamos el ID del periodo activo
+            const currentPeriodId = dashboardData.success ? dashboardData.estudiante?.periodo_info?.id : null;
+
+            // 3. Obtenemos los registros específicos según el periodo
+            let registrosData;
+            if (currentPeriodId) {
+                // Si hay periodo activo, traemos SOLO los registros de ese periodo
+                registrosData = await estudianteAPI.getRegistrosPeriodo(currentPeriodId);
+            } else {
+                // Si no hay periodo activo, traemos todo el historial (legacy fallback)
+                registrosData = await estudianteAPI.getRegistros();
+            }
+
             if (registrosData.success) {
-                // Filter by current period if available
-                const currentPeriodId = dashboardData.success ? dashboardData.estudiante?.periodo_info?.id : null;
-                let filteredRegistros = registrosData.registros;
-
-                if (currentPeriodId) {
-                    filteredRegistros = registrosData.registros.filter(r => r.periodo_id === currentPeriodId);
-                }
-
-                setRegistros(filteredRegistros);
+                setRegistros(registrosData.registros);
             } else {
                 setError(registrosData.error || 'Error al cargar registros');
             }

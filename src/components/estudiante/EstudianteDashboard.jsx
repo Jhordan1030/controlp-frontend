@@ -28,18 +28,20 @@ export default function EstudianteDashboard() {
         try {
             setLoading(true);
 
-            // Cargar dashboard y registros en paralelo, y perfil para validar periodo
-            const [dashData, regsData, perfilData] = await Promise.all([
+            // 1. Cargar dashboard y perfil primero para obtener contexto
+            const [dashData, perfilData] = await Promise.all([
                 estudianteAPI.getDashboard(),
-                estudianteAPI.getRegistros(),
                 estudianteAPI.getPerfil()
             ]);
+
+            let regsData = { success: false, registros: [] };
 
             if (dashData.success) {
                 setDashboardData(dashData);
 
                 // Nueva validación con campo 'periodo_info' provisto por el backend
                 const periodoInfo = dashData.estudiante?.periodo_info;
+                const currentPeriodId = periodoInfo?.id;
 
                 if (periodoInfo) {
                     if (periodoInfo.activo === false) {
@@ -49,20 +51,23 @@ export default function EstudianteDashboard() {
                         });
                     }
                 }
+
+                // 2. Cargar registros específicos del periodo activo
+                if (currentPeriodId) {
+                    regsData = await estudianteAPI.getRegistrosPeriodo(currentPeriodId);
+                } else {
+                    // Fallback: si no hay periodo activo detectado, intentar carga general o dejar vacío/null
+                    // regsData = await estudianteAPI.getRegistros();
+                    console.log('No active period detected for dashboard stats');
+                }
+
             } else {
                 setError(dashData.error || 'Error al cargar el dashboard');
             }
 
             if (regsData.success) {
-                // Filter records by current period if available
-                const currentPeriodId = dashData.estudiante?.periodo_info?.id;
-
-                let filteredRegistros = regsData.registros;
-                if (currentPeriodId) {
-                    filteredRegistros = regsData.registros.filter(r => r.periodo_id === currentPeriodId);
-                }
-
-                setAllRegistros(filteredRegistros);
+                // Ya vienen filtrados por el backend
+                setAllRegistros(regsData.registros);
             }
         } catch (err) {
             setError(handleApiError(err));
