@@ -122,12 +122,12 @@ export default function EstudianteDashboard() {
                     <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
                         Hola, {estudiante.nombres?.split(' ')[0]} 👋
                     </h1>
-                    <div className="flex items-center gap-2 text-gray-500 mt-1">
+                    <div className="flex items-center gap-2 text-gray-500 dark:text-gray-400 mt-1">
                         <School className="w-4 h-4" />
                         <span className="text-sm font-medium">{estudiante.universidad || 'Universidad no asignada'}</span>
                         {estudiante.periodo && (
                             <>
-                                <span className="text-gray-300">•</span>
+                                <span className="text-gray-300 dark:text-gray-600">•</span>
                                 <BookOpen className="w-4 h-4" />
                                 <span className="text-sm">{estudiante.periodo}</span>
                             </>
@@ -136,7 +136,7 @@ export default function EstudianteDashboard() {
                 </div>
                 <button
                     onClick={() => setShowRegistroModal(true)}
-                    className="btn-primary shadow-lg shadow-indigo-200 flex items-center gap-2"
+                    className="bg-indigo-400 hover:bg-indigo-500 text-white px-4 py-2 rounded-xl transition-all shadow-lg shadow-indigo-100 dark:shadow-none flex items-center gap-2 font-medium"
                 >
                     <Plus className="w-5 h-5" />
                     Registrar Horas
@@ -149,28 +149,28 @@ export default function EstudianteDashboard() {
             {/* Stats Cards */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 {/* Horas Acumuladas */}
-                <div className="bg-gradient-to-br from-indigo-500 to-indigo-600 rounded-2xl p-6 text-white shadow-lg shadow-indigo-200">
+                <div className="bg-gradient-to-br from-violet-400 to-indigo-400 rounded-2xl p-6 text-white shadow-lg shadow-indigo-100 dark:shadow-none">
                     <div className="flex justify-between items-start mb-4">
-                        <div className="p-2 bg-white/20 rounded-lg backdrop-blur-sm">
+                        <div className="p-2 bg-white/30 rounded-lg backdrop-blur-sm">
                             <Clock className="w-6 h-6 text-white" />
                         </div>
-                        <span className="text-xs font-medium bg-white/20 px-2 py-1 rounded-full backdrop-blur-sm">
+                        <span className="text-xs font-medium bg-white/30 px-2 py-1 rounded-full backdrop-blur-sm">
                             Total Acumulado
                         </span>
                     </div>
                     <div>
                         <h3 className="text-4xl font-bold mb-1">{totalHoras}</h3>
-                        <p className="text-indigo-100 text-sm">Horas registradas</p>
+                        <p className="text-indigo-50 text-sm">Horas registradas</p>
                     </div>
                 </div>
 
                 {/* Progreso */}
                 <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm border border-gray-100 dark:border-gray-700 transition-colors duration-200">
                     <div className="flex justify-between items-start mb-4">
-                        <div className="p-2 bg-green-50 dark:bg-green-900/20 rounded-lg">
-                            <CheckCircle className="w-6 h-6 text-green-600" />
+                        <div className="p-2 bg-emerald-50 dark:bg-emerald-900/20 rounded-lg">
+                            <CheckCircle className="w-6 h-6 text-emerald-500 dark:text-emerald-400" />
                         </div>
-                        <span className="text-xs font-medium bg-green-50 text-green-700 px-2 py-1 rounded-full">
+                        <span className="text-xs font-medium bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 px-2 py-1 rounded-full">
                             Meta: {horasRequeridas}h
                         </span>
                     </div>
@@ -180,11 +180,11 @@ export default function EstudianteDashboard() {
                         </div>
                         <div className="w-full bg-gray-100 dark:bg-gray-700 rounded-full h-2">
                             <div
-                                className="bg-green-500 h-2 rounded-full transition-all duration-1000"
+                                className="bg-emerald-400 h-2 rounded-full transition-all duration-1000 shadow-sm shadow-emerald-200 dark:shadow-none"
                                 style={{ width: `${Math.min(porcentaje, 100)}%` }}
                             ></div>
                         </div>
-                        <p className="text-gray-500 text-xs mt-2">
+                        <p className="text-gray-500 dark:text-gray-400 text-xs mt-2">
                             {porcentaje >= 100
                                 ? '¡Meta completada! 🎉'
                                 : `Faltan ${(horasRequeridas - totalHoras).toFixed(1)} horas`
@@ -196,10 +196,10 @@ export default function EstudianteDashboard() {
                 {/* Info Card (Placeholder for now since we have strings only) */}
                 <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm border border-gray-100 dark:border-gray-700 transition-colors duration-200">
                     <div className="flex justify-between items-start mb-4">
-                        <div className="p-2 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-                            <Calendar className="w-6 h-6 text-blue-600" />
+                        <div className="p-2 bg-sky-50 dark:bg-sky-900/20 rounded-lg">
+                            <Calendar className="w-6 h-6 text-sky-500 dark:text-sky-400" />
                         </div>
-                        <span className="text-xs font-medium bg-blue-50 text-blue-700 px-2 py-1 rounded-full">
+                        <span className="text-xs font-medium bg-sky-50 dark:bg-sky-900/20 text-sky-600 dark:text-sky-400 px-2 py-1 rounded-full">
                             En curso
                         </span>
                     </div>
@@ -208,8 +208,8 @@ export default function EstudianteDashboard() {
                             {estudiante.periodo || 'Sin periodo'}
                         </h3>
                         <div className="space-y-1 mt-2">
-                            <p className="text-xs text-gray-500 flex items-center gap-2">
-                                Estado: <span className="font-medium text-green-600">Activo</span>
+                            <p className="text-xs text-gray-500 dark:text-gray-400 flex items-center gap-2">
+                                Estado: <span className="font-medium text-emerald-500 dark:text-emerald-400">Activo</span>
                             </p>
                         </div>
                     </div>
@@ -233,7 +233,7 @@ export default function EstudianteDashboard() {
                                     cursor={{ fill: '#EEF2FF' }}
                                     contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
                                 />
-                                <Bar dataKey="horas" fill="#6366F1" radius={[4, 4, 0, 0]} barSize={40} name="Horas" />
+                                <Bar dataKey="horas" fill="#818CF8" radius={[4, 4, 0, 0]} barSize={40} name="Horas" />
                             </BarChart>
                         </ResponsiveContainer>
                     </div>
@@ -248,23 +248,23 @@ export default function EstudianteDashboard() {
                         <h2 className="text-lg font-bold text-gray-900 dark:text-white">Actividad Reciente</h2>
                     </div>
 
-                    <Card className="overflow-hidden">
+                    <Card className="overflow-hidden bg-white dark:bg-gray-800 border-gray-100 dark:border-gray-700">
                         {ultimosRegistros && ultimosRegistros.length > 0 ? (
-                            <div className="divide-y divide-gray-100">
+                            <div className="divide-y divide-gray-100 dark:divide-gray-700">
                                 {ultimosRegistros.map((registro) => (
-                                    <div key={registro.id} className="p-4 hover:bg-gray-50 transition flex items-center justify-between group">
+                                    <div key={registro.id} className="p-4 hover:bg-gray-50 dark:hover:bg-gray-700 transition flex items-center justify-between group">
                                         <div className="flex items-start gap-4">
-                                            <div className="p-2 bg-indigo-50 text-indigo-600 rounded-lg group-hover:bg-indigo-100 transition">
+                                            <div className="p-2 bg-violet-50 dark:bg-violet-900/20 text-violet-500 dark:text-violet-400 rounded-lg group-hover:bg-violet-100 dark:group-hover:bg-violet-900/40 transition">
                                                 <Clock className="w-5 h-5" />
                                             </div>
                                             <div>
-                                                <p className="text-sm font-medium text-gray-900">{registro.descripcion}</p>
-                                                <p className="text-xs text-gray-500 mt-0.5">
+                                                <p className="text-sm font-medium text-gray-900 dark:text-gray-100">{registro.descripcion}</p>
+                                                <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
                                                     {formatDateShort(registro.fecha)}
                                                 </p>
                                             </div>
                                         </div>
-                                        <span className="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-xs font-bold">
+                                        <span className="px-3 py-1 bg-gray-50 dark:bg-gray-700 text-gray-600 dark:text-gray-300 rounded-full text-xs font-bold border border-gray-100 dark:border-gray-600">
                                             {registro.horas}h
                                         </span>
                                     </div>

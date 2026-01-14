@@ -61,16 +61,16 @@ export default function ActivityCalendar({ registros = [] }) {
 
     const getColorClass = (hours) => {
         if (hours === 0) return '';
-        if (hours >= 4) return 'bg-green-200 text-green-800 font-bold'; // Pastel Green
-        if (hours >= 2) return 'bg-yellow-200 text-yellow-800 font-bold'; // Pastel Yellow
-        return 'bg-red-200 text-red-800 font-bold'; // Pastel Red
+        if (hours >= 4) return 'bg-emerald-300 text-emerald-900 dark:bg-emerald-700 dark:text-emerald-100 font-bold'; // Pastel Green
+        if (hours >= 2) return 'bg-amber-200 text-amber-900 dark:bg-amber-700 dark:text-amber-100 font-bold'; // Pastel Yellow/Amber
+        return 'bg-rose-200 text-rose-900 dark:bg-rose-700 dark:text-rose-100 font-bold'; // Pastel Red/Rose
     };
 
     return (
         <Card>
             <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-bold text-gray-900 flex items-center gap-2">
-                    <CalendarIcon className="w-5 h-5 text-indigo-600" />
+                <h3 className="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                    <CalendarIcon className="w-5 h-5 text-indigo-400" />
                     Calendario de Actividad
                 </h3>
                 <div className="flex items-center gap-2">
@@ -94,7 +94,7 @@ export default function ActivityCalendar({ registros = [] }) {
 
             <div className="grid grid-cols-7 mb-2 text-center">
                 {['D', 'L', 'M', 'M', 'J', 'V', 'S'].map((day, i) => (
-                    <div key={i} className="text-xs font-semibold text-gray-400 py-1">
+                    <div key={i} className="text-xs font-semibold text-gray-400 dark:text-gray-500 py-1">
                         {day}
                     </div>
                 ))}
@@ -131,17 +131,17 @@ export default function ActivityCalendar({ registros = [] }) {
                 })}
             </div>
 
-            <div className="flex justify-center gap-4 mt-4 text-xs text-gray-500">
+            <div className="flex justify-center gap-4 mt-4 text-xs text-gray-500 dark:text-gray-400">
                 <div className="flex items-center gap-1">
-                    <div className="w-3 h-3 rounded-full bg-green-200 border border-green-300"></div>
+                    <div className="w-3 h-3 rounded-full bg-emerald-300 border border-emerald-400 dark:border-emerald-600"></div>
                     <span>4+ hrs</span>
                 </div>
                 <div className="flex items-center gap-1">
-                    <div className="w-3 h-3 rounded-full bg-yellow-200 border border-yellow-300"></div>
+                    <div className="w-3 h-3 rounded-full bg-amber-200 border border-amber-300 dark:border-amber-600"></div>
                     <span>2-4 hrs</span>
                 </div>
                 <div className="flex items-center gap-1">
-                    <div className="w-3 h-3 rounded-full bg-red-200 border border-red-300"></div>
+                    <div className="w-3 h-3 rounded-full bg-rose-200 border border-rose-300 dark:border-rose-600"></div>
                     <span>-2 hrs</span>
                 </div>
             </div>

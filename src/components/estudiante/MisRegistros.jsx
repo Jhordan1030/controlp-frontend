@@ -85,7 +85,7 @@ export default function MisRegistros() {
                 </div>
                 <button
                     onClick={() => setShowRegistroModal(true)}
-                    className="btn-primary flex items-center gap-2 shadow-lg shadow-indigo-200"
+                    className="bg-indigo-400 hover:bg-indigo-500 text-white px-4 py-2 rounded-xl transition-all shadow-lg shadow-indigo-100 dark:shadow-none flex items-center gap-2 font-medium"
                 >
                     <Plus className="w-5 h-5" />
                     Registrar Horas
@@ -103,8 +103,8 @@ export default function MisRegistros() {
                             <p className="text-sm text-gray-600 dark:text-gray-400 font-medium">Total Registros</p>
                             <p className="text-3xl font-bold text-gray-900 dark:text-white mt-1">{registros.length}</p>
                         </div>
-                        <div className="p-3 bg-indigo-50 dark:bg-indigo-900/20 rounded-lg">
-                            <FileText className="w-8 h-8 text-indigo-600 dark:text-indigo-400" />
+                        <div className="p-3 bg-violet-50 dark:bg-violet-900/20 rounded-lg">
+                            <FileText className="w-8 h-8 text-violet-500 dark:text-violet-400" />
                         </div>
                     </div>
                 </div>
@@ -115,8 +115,8 @@ export default function MisRegistros() {
                             <p className="text-sm text-gray-600 dark:text-gray-400 font-medium">Total Horas</p>
                             <p className="text-3xl font-bold text-gray-900 dark:text-white mt-1">{totalHoras.toFixed(1)}</p>
                         </div>
-                        <div className="p-3 bg-green-50 dark:bg-green-900/20 rounded-lg">
-                            <Clock className="w-8 h-8 text-green-600 dark:text-green-400" />
+                        <div className="p-3 bg-emerald-50 dark:bg-emerald-900/20 rounded-lg">
+                            <Clock className="w-8 h-8 text-emerald-500 dark:text-emerald-400" />
                         </div>
                     </div>
                 </div>
@@ -129,8 +129,8 @@ export default function MisRegistros() {
                                 {registros.length > 0 ? (totalHoras / registros.length).toFixed(1) : '0.0'}
                             </p>
                         </div>
-                        <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-                            <Calendar className="w-8 h-8 text-blue-600 dark:text-blue-400" />
+                        <div className="p-3 bg-sky-50 dark:bg-sky-900/20 rounded-lg">
+                            <Calendar className="w-8 h-8 text-sky-500 dark:text-sky-400" />
                         </div>
                     </div>
                 </div>

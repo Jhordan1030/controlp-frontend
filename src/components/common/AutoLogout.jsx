@@ -111,32 +111,26 @@ export default function AutoLogout() {
             size="md"
         >
             <div className="flex flex-col items-center text-center p-4">
-                <div className="w-16 h-16 bg-yellow-100 rounded-full flex items-center justify-center mb-4">
-                    <Clock className="w-8 h-8 text-yellow-600 animate-pulse" />
+                <div className="w-16 h-16 bg-amber-100 dark:bg-amber-900/20 rounded-full flex items-center justify-center mb-4">
+                    <Clock className="w-8 h-8 text-amber-600 dark:text-amber-400 animate-pulse" />
                 </div>
 
-                <h3 className="text-xl font-bold text-gray-900 mb-2">
+                <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
                     ¿Sigues ahí?
                 </h3>
 
-                <p className="text-gray-600 mb-6">
+                <p className="text-gray-600 dark:text-gray-400 mb-6">
                     Tu sesión se cerrará automáticamente en:
                 </p>
 
-                <div className="text-4xl font-mono font-bold text-indigo-600 mb-8">
+                <div className="text-4xl font-mono font-bold text-indigo-500 dark:text-indigo-400 mb-8">
                     {formatTime(timeLeft)}
                 </div>
 
                 <div className="flex gap-4 w-full justify-center">
                     <button
-                        onClick={handleLogout}
-                        className="px-4 py-2 border border-red-200 text-red-600 rounded-lg hover:bg-red-50 font-medium transition"
-                    >
-                        Cerrar Sesión
-                    </button>
-                    <button
                         onClick={handleStayConnected}
-                        className="px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 font-bold transition shadow-lg"
+                        className="px-6 py-2 bg-indigo-500 hover:bg-indigo-600 text-white rounded-lg font-bold transition shadow-lg shadow-indigo-200 dark:shadow-none"
                     >
                         Seguir Conectado
                     </button>
