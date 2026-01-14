@@ -172,6 +172,11 @@ export const estudianteAPI = {
         return data;
     },
 
+    getRegistrosPeriodo: async (periodoId) => {
+        const { data } = await api.get(`/estudiante/periodos/${periodoId}/registros`);
+        return data;
+    },
+
     registrarHoras: async (registro) => {
         const { data } = await api.post('/estudiante/registrar-horas', registro);
         return data;

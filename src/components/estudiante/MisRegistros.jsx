@@ -18,6 +18,7 @@ export default function MisRegistros() {
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [showRegistroModal, setShowRegistroModal] = useState(false);
     const [registroToDelete, setRegistroToDelete] = useState(null);
+    const [periodoEstado, setPeriodoEstado] = useState({ finalizado: false, mensaje: '' });
 
     useEffect(() => {
         loadRegistros();
@@ -26,13 +27,37 @@ export default function MisRegistros() {
     const loadRegistros = async () => {
         try {
             setLoading(true);
-            const data = await estudianteAPI.getRegistros();
+            const [registrosData, dashboardData, perfilData] = await Promise.all([
+                estudianteAPI.getRegistros(),
+                estudianteAPI.getDashboard(),
+                estudianteAPI.getPerfil()
+            ]);
 
-            if (data.success) {
-                setRegistros(data.registros);
+            if (registrosData.success) {
+                // Filter by current period if available
+                const currentPeriodId = dashboardData.success ? dashboardData.estudiante?.periodo_info?.id : null;
+                let filteredRegistros = registrosData.registros;
+
+                if (currentPeriodId) {
+                    filteredRegistros = registrosData.registros.filter(r => r.periodo_id === currentPeriodId);
+                }
+
+                setRegistros(filteredRegistros);
             } else {
-                setError(data.error || 'Error al cargar registros');
+                setError(registrosData.error || 'Error al cargar registros');
             }
+
+            // Validación usando el nuevo campo del backend 'periodo_info'
+            if (dashboardData.success && dashboardData.estudiante?.periodo_info) {
+                const { activo } = dashboardData.estudiante.periodo_info;
+                if (activo === false) {
+                    setPeriodoEstado({
+                        finalizado: true,
+                        mensaje: 'El periodo académico actual ha finalizado.'
+                    });
+                }
+            }
+
         } catch (err) {
             setError(handleApiError(err));
         } finally {
@@ -85,12 +110,28 @@ export default function MisRegistros() {
                 </div>
                 <button
                     onClick={() => setShowRegistroModal(true)}
-                    className="bg-indigo-400 hover:bg-indigo-500 text-white px-4 py-2 rounded-xl transition-all shadow-lg shadow-indigo-100 dark:shadow-none flex items-center gap-2 font-medium"
+                    disabled={periodoEstado.finalizado}
+                    className={`px-4 py-2 rounded-xl transition-all flex items-center gap-2 font-medium ${periodoEstado.finalizado
+                        ? 'bg-gray-300 dark:bg-gray-600 text-gray-500 dark:text-gray-400 cursor-not-allowed'
+                        : 'bg-indigo-400 hover:bg-indigo-500 text-white shadow-lg shadow-indigo-100 dark:shadow-none'
+                        }`}
                 >
                     <Plus className="w-5 h-5" />
-                    Registrar Horas
+                    {periodoEstado.finalizado ? 'Finalizado' : 'Registrar Horas'}
                 </button>
             </div>
+
+            {periodoEstado.finalizado && (
+                <div className="bg-amber-50 dark:bg-amber-900/20 border-l-4 border-amber-400 p-4 rounded-r-lg flex items-center gap-3">
+                    <AlertCircle className="w-6 h-6 text-amber-500" />
+                    <div>
+                        <p className="font-bold text-amber-800 dark:text-amber-200">Periodo Finalizado</p>
+                        <p className="text-sm text-amber-700 dark:text-amber-300">
+                            No es posible registrar más horas en este periodo.
+                        </p>
+                    </div>
+                </div>
+            )}
 
             {error && <Alert type="error" message={error} onClose={() => setError('')} />}
             {success && <Alert type="success" message={success} onClose={() => setSuccess('')} />}

@@ -16,14 +16,20 @@ export default function AutoLogout() {
     const inactivityTimerRef = useRef(null);
     const countdownIntervalRef = useRef(null);
     const showModalRef = useRef(false);
+    const isMounted = useRef(true);
 
-    // Sincronizar ref con estado
+    // Sincronizar ref con estado y cleanup de montado
     useEffect(() => {
         showModalRef.current = showModal;
+        isMounted.current = true;
+        return () => { isMounted.current = false; };
     }, [showModal]);
 
     // Función para cerrar sesión real
     const handleLogout = useCallback(() => {
+        if (countdownIntervalRef.current) clearInterval(countdownIntervalRef.current);
+        if (inactivityTimerRef.current) clearTimeout(inactivityTimerRef.current);
+
         setShowModal(false);
         logout();
         window.location.href = '/login';
@@ -38,6 +44,7 @@ export default function AutoLogout() {
         if (countdownIntervalRef.current) clearInterval(countdownIntervalRef.current);
 
         countdownIntervalRef.current = setInterval(() => {
+            if (!isMounted.current) return;
             setTimeLeft((prev) => {
                 if (prev <= 1) {
                     clearInterval(countdownIntervalRef.current);

@@ -16,7 +16,9 @@ export default function EstudianteDashboard() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
+
     const [showRegistroModal, setShowRegistroModal] = useState(false);
+    const [periodoEstado, setPeriodoEstado] = useState({ finalizado: false, mensaje: '' });
 
     useEffect(() => {
         loadDashboard();
@@ -26,21 +28,41 @@ export default function EstudianteDashboard() {
         try {
             setLoading(true);
 
-            // Cargar dashboard y registros en paralelo
-            const [dashData, regsData] = await Promise.all([
+            // Cargar dashboard y registros en paralelo, y perfil para validar periodo
+            const [dashData, regsData, perfilData] = await Promise.all([
                 estudianteAPI.getDashboard(),
-                estudianteAPI.getRegistros()
+                estudianteAPI.getRegistros(),
+                estudianteAPI.getPerfil()
             ]);
 
             if (dashData.success) {
-                console.log('Dashboard Data Full:', dashData);
                 setDashboardData(dashData);
+
+                // Nueva validación con campo 'periodo_info' provisto por el backend
+                const periodoInfo = dashData.estudiante?.periodo_info;
+
+                if (periodoInfo) {
+                    if (periodoInfo.activo === false) {
+                        setPeriodoEstado({
+                            finalizado: true,
+                            mensaje: 'El periodo académico actual ha finalizado o está inactivo.'
+                        });
+                    }
+                }
             } else {
                 setError(dashData.error || 'Error al cargar el dashboard');
             }
 
             if (regsData.success) {
-                setAllRegistros(regsData.registros);
+                // Filter records by current period if available
+                const currentPeriodId = dashData.estudiante?.periodo_info?.id;
+
+                let filteredRegistros = regsData.registros;
+                if (currentPeriodId) {
+                    filteredRegistros = regsData.registros.filter(r => r.periodo_id === currentPeriodId);
+                }
+
+                setAllRegistros(filteredRegistros);
             }
         } catch (err) {
             setError(handleApiError(err));
@@ -63,7 +85,8 @@ export default function EstudianteDashboard() {
 
         const weeks = {};
         allRegistros.forEach(reg => {
-            const date = new Date(reg.fecha);
+            // Force local time to avoid UTC offset issues
+            const date = new Date(reg.fecha + 'T00:00:00');
             // Obtener fecha de inicio de semana (Domingo)
             const d = new Date(date);
             const day = d.getDay();
@@ -109,10 +132,16 @@ export default function EstudianteDashboard() {
     // So university and period were strings in `estudiante` object.
 
     // However, I want a richer dashboard. Let's use the data we have.
-    const totalHoras = parseFloat(stats.totalHoras) || 0;
+    // Recalculate stats based on filtered records to ensure accuracy for the current period
+    const totalHoras = allRegistros.reduce((acc, curr) => acc + (parseFloat(curr.horas) || 0), 0);
     const horasRequeridas = parseFloat(stats.horasRequeridas) || 0;
-    const porcentaje = parseFloat(stats.porcentaje) || 0;
-    const ultimosRegistros = stats.ultimosRegistros || [];
+
+    // Calculate percentage based on local total
+    const porcentaje = horasRequeridas > 0
+        ? Math.min(100, (totalHoras / horasRequeridas) * 100).toFixed(1)
+        : 0;
+
+    const ultimosRegistros = allRegistros.slice(0, 5); // Show top 5 of current period
 
     return (
         <div className="space-y-6 animate-fadeIn">
@@ -136,15 +165,31 @@ export default function EstudianteDashboard() {
                 </div>
                 <button
                     onClick={() => setShowRegistroModal(true)}
-                    className="bg-indigo-400 hover:bg-indigo-500 text-white px-4 py-2 rounded-xl transition-all shadow-lg shadow-indigo-100 dark:shadow-none flex items-center gap-2 font-medium"
+                    disabled={periodoEstado.finalizado}
+                    className={`px-4 py-2 rounded-xl transition-all flex items-center gap-2 font-medium ${periodoEstado.finalizado
+                        ? 'bg-gray-300 dark:bg-gray-600 text-gray-500 dark:text-gray-400 cursor-not-allowed'
+                        : 'bg-indigo-400 hover:bg-indigo-500 text-white shadow-lg shadow-indigo-100 dark:shadow-none'
+                        }`}
+                    title={periodoEstado.finalizado ? periodoEstado.mensaje : "Registrar nuevas horas"}
                 >
                     <Plus className="w-5 h-5" />
-                    Registrar Horas
+                    {periodoEstado.finalizado ? 'Periodo Finalizado' : 'Registrar Horas'}
                 </button>
             </div>
 
             {error && <Alert type="error" message={error} onClose={() => setError('')} />}
             {success && <Alert type="success" message={success} onClose={() => setSuccess('')} />}
+            {periodoEstado.finalizado && (
+                <div className="bg-amber-50 dark:bg-amber-900/20 border-l-4 border-amber-400 p-4 rounded-r-lg flex items-center gap-3">
+                    <AlertCircle className="w-6 h-6 text-amber-500" />
+                    <div>
+                        <p className="font-bold text-amber-800 dark:text-amber-200">Periodo Finalizado</p>
+                        <p className="text-sm text-amber-700 dark:text-amber-300">
+                            {periodoEstado.mensaje} No es posible registrar más horas.
+                        </p>
+                    </div>
+                </div>
+            )}
 
             {/* Stats Cards */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -223,8 +268,8 @@ export default function EstudianteDashboard() {
                         <TrendingUp className="w-5 h-5 text-indigo-600" />
                         Progreso Semanal (Horas)
                     </h3>
-                    <div className="h-[250px] w-full">
-                        <ResponsiveContainer width="100%" height="100%">
+                    <div style={{ width: '100%', height: 250 }}>
+                        <ResponsiveContainer>
                             <BarChart data={weeklyData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
                                 <CartesianGrid strokeDasharray="3 3" vertical={false} />
                                 <XAxis dataKey="name" axisLine={false} tickLine={false} fontSize={12} tickMargin={10} />

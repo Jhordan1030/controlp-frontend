@@ -1,19 +1,23 @@
 // ==================== src/utils/helpers.js ====================
 export const formatDate = (dateString) => {
+    if (!dateString) return '';
     const date = new Date(dateString);
     return new Intl.DateTimeFormat('es-EC', {
         year: 'numeric',
         month: 'long',
-        day: 'numeric'
+        day: 'numeric',
+        timeZone: 'UTC'
     }).format(date);
 };
 
 export const formatDateShort = (dateString) => {
+    if (!dateString) return '';
     const date = new Date(dateString);
     return new Intl.DateTimeFormat('es-EC', {
         year: 'numeric',
         month: '2-digit',
-        day: '2-digit'
+        day: '2-digit',
+        timeZone: 'UTC'
     }).format(date);
 };
 
