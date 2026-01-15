@@ -4,18 +4,17 @@ import Card from '../common/Card';
 import Modal from '../common/Modal';
 import LoadingSpinner from '../common/LoadingSpinner';
 import { CardSkeleton } from '../common/Skeleton';
-import Alert from '../common/Alert';
-import { adminAPI } from '../../services/api';
-import { handleApiError } from '../../utils/helpers';
 import { downloadCSV, downloadPDF } from '../../utils/exportHelpers';
+import { useToast } from '../../context/ToastContext';
+import { adminAPI } from '../../services/api'; // Check path
+import { handleApiError } from '../../utils/helpers'; // Check path
 
 export default function UniversidadesManager() {
     const [universidades, setUniversidades] = useState([]);
     const [loading, setLoading] = useState(true);
     const [showModal, setShowModal] = useState(false);
     const [nombre, setNombre] = useState('');
-    const [error, setError] = useState('');
-    const [success, setSuccess] = useState('');
+    const { showToast } = useToast();
     const [isEditing, setIsEditing] = useState(false);
     const [currentId, setCurrentId] = useState(null);
     const [activa, setActiva] = useState(true);
@@ -36,7 +35,7 @@ export default function UniversidadesManager() {
                 setUniversidades(data.universidades);
             }
         } catch (err) {
-            setError(handleApiError(err));
+            showToast(handleApiError(err), 'error');
         } finally {
             setLoading(false);
         }
@@ -63,8 +62,6 @@ export default function UniversidadesManager() {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        setError('');
-        setSuccess('');
 
         try {
             // Fix: Find original name to avoid sending it if unchanged (backend has a bug with unchanged names)
@@ -76,7 +73,7 @@ export default function UniversidadesManager() {
                 : await adminAPI.crearUniversidad(nombre);
 
             if (data.success) {
-                setSuccess(isEditing ? 'Universidad actualizada exitosamente' : 'Universidad creada exitosamente');
+                showToast(isEditing ? 'Universidad actualizada exitosamente' : 'Universidad creada exitosamente', 'success');
                 setNombre('');
                 setIsEditing(false);
                 setCurrentId(null);
@@ -84,10 +81,10 @@ export default function UniversidadesManager() {
                 setShowModal(false);
                 loadUniversidades();
             } else {
-                setError(data.error || 'Error al procesar la solicitud');
+                showToast(data.error || 'Error al procesar la solicitud', 'error');
             }
         } catch (err) {
-            setError(handleApiError(err));
+            showToast(handleApiError(err), 'error');
         }
     };
 
@@ -156,9 +153,7 @@ export default function UniversidadesManager() {
                 </div>
             </div>
 
-            {/* Alerts */}
-            {error && <Alert type="error" message={error} onClose={() => setError('')} />}
-            {success && <Alert type="success" message={success} onClose={() => setSuccess('')} />}
+
 
             {/* Search Bar */}
             <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 transition-colors duration-200">

@@ -5,10 +5,10 @@ import Card from '../common/Card';
 import Modal from '../common/Modal';
 import LoadingSpinner from '../common/LoadingSpinner';
 import { TableSkeleton } from '../common/Skeleton';
-import Alert from '../common/Alert';
+import { downloadCSV, downloadPDF } from '../../utils/exportHelpers';
+import { useToast } from '../../context/ToastContext';
 import { adminAPI } from '../../services/api';
 import { handleApiError } from '../../utils/helpers';
-import { downloadCSV, downloadPDF } from '../../utils/exportHelpers';
 
 export default function EstudiantesManager() {
     const [estudiantes, setEstudiantes] = useState([]);
@@ -16,8 +16,8 @@ export default function EstudiantesManager() {
     const [periodos, setPeriodos] = useState([]);
     const [loading, setLoading] = useState(true);
     const [showModal, setShowModal] = useState(false);
-    const [error, setError] = useState('');
-    const [success, setSuccess] = useState('');
+
+    const { showToast } = useToast();
 
     // Filtros
     const [searchTerm, setSearchTerm] = useState('');
@@ -94,8 +94,10 @@ export default function EstudiantesManager() {
             ]);
             if (universidadesData.success) setUniversidades(universidadesData.universidades);
             if (periodosData.success) setPeriodos(periodosData.periodos);
+            if (periodosData.success) setPeriodos(periodosData.periodos);
         } catch (err) {
             console.error("Error loading auxiliary data", err);
+            // No alert needed here as it's background data
         }
     };
 
@@ -124,10 +126,10 @@ export default function EstudiantesManager() {
                 setTotalStudents(data.count || 0);
                 setTotalPages(data.totalPages || 1);
             } else {
-                setError(data.error || 'Error al cargar estudiantes');
+                showToast(data.error || 'Error al cargar estudiantes', 'error');
             }
         } catch (err) {
-            setError(handleApiError(err));
+            showToast(handleApiError(err), 'error');
         } finally {
             setLoading(false);
         }
@@ -174,10 +176,10 @@ export default function EstudiantesManager() {
                         setPasswordCopied(false);
                         setShowPasswordModal(true);
                     } else {
-                        setError(res.error || 'Error al generar contraseña');
+                        showToast(res.error || 'Error al generar contraseña', 'error');
                     }
                 } catch (err) {
-                    setError(handleApiError(err));
+                    showToast(handleApiError(err), 'error');
                 }
             }
         });
@@ -190,8 +192,6 @@ export default function EstudiantesManager() {
     };
 
     const saveStudent = async (shouldClose = true) => {
-        setError('');
-        setSuccess('');
 
         try {
             // Separar lógica de creación vs edición
@@ -211,12 +211,12 @@ export default function EstudiantesManager() {
                     const passRes = await adminAPI.reestablecerPassword(currentId, formData.password);
                     if (!passRes.success) {
                         // Warning: datos guardados pero password falló
-                        setSuccess('Datos actualizados, pero hubo un error cambiando la contraseña: ' + (passRes.error || 'desconocido'));
+                        showToast('Datos actualizados, pero hubo un error cambiando la contraseña: ' + (passRes.error || 'desconocido'), 'warning');
                         return;
                     }
                 }
 
-                setSuccess('Estudiante actualizado exitosamente');
+                showToast('Estudiante actualizado exitosamente', 'success');
                 resetForm();
                 setShowModal(false);
                 loadData();
@@ -227,7 +227,7 @@ export default function EstudiantesManager() {
                 const data = await adminAPI.crearEstudiante(payload);
 
                 if (data.success) {
-                    setSuccess('Estudiante creado exitosamente');
+                    showToast('Estudiante creado exitosamente', 'success');
 
                     if (shouldClose) {
                         resetForm();
@@ -245,11 +245,11 @@ export default function EstudiantesManager() {
                     }
                     loadData();
                 } else {
-                    setError(data.error || 'Error al guardar estudiante');
+                    showToast(data.error || 'Error al guardar estudiante', 'error');
                 }
             }
         } catch (err) {
-            setError(handleApiError(err));
+            showToast(handleApiError(err), 'error');
         }
     };
 
@@ -318,13 +318,23 @@ export default function EstudiantesManager() {
         // 2. Procesar registros y asignarlos a grupos
         if (selectedStudent.registros) {
             selectedStudent.registros.forEach(reg => {
+                // Verificar Integridad de Datos: Asegurar que el registro pertenece al estudiante seleccionado
+                if (reg.estudiante_id && reg.estudiante_id !== selectedStudent.id) {
+                    console.warn(`Registro ${reg.id} ignorado por no pertenecer al estudiante ${selectedStudent.id}`);
+                    return;
+                }
+
                 let periodId = reg.periodo_id;
                 let periodName = 'Sin Asignar';
+                let requiredHours = 0;
 
                 // A. Intentar por ID directo
                 if (periodId) {
                     const period = periodos.find(p => p.id === periodId);
-                    if (period) periodName = period.nombre;
+                    if (period) {
+                        periodName = period.nombre;
+                        requiredHours = period.horas_totales_requeridas;
+                    }
                 } else {
                     // B. "Smart Grouping" por fecha si falta ID
                     const regDate = new Date(reg.fecha);
@@ -336,6 +346,7 @@ export default function EstudiantesManager() {
                     if (match) {
                         periodId = match.id;
                         periodName = match.nombre;
+                        requiredHours = match.horas_totales_requeridas;
                     }
                 }
 
@@ -347,6 +358,7 @@ export default function EstudiantesManager() {
                         name: periodId ? periodName : 'Periodo Desconocido',
                         totalHoras: 0,
                         horasAprobadas: 0,
+                        requiredHoras: requiredHours || 0,
                         registros: []
                     };
                 }
@@ -369,8 +381,7 @@ export default function EstudiantesManager() {
 
     const handleViewDetails = async (estudiante) => {
         try {
-            setLoading(true);
-            setLoading(true);
+            // No activamos loading global para evitar salto de página (skeleton)
             const data = await adminAPI.getEstudiante(estudiante.id);
             if (data.success) {
                 // Combinar datos frescos con las matriculaciones que ya tenemos en la lista
@@ -382,12 +393,10 @@ export default function EstudiantesManager() {
                 setActiveTab(0); // Reset ear al primer tab
                 setShowDetailModal(true);
             } else {
-                setError('No se pudieron cargar los detalles');
+                showToast('No se pudieron cargar los detalles', 'error');
             }
         } catch (err) {
-            setError('Error al cargar detalles');
-        } finally {
-            setLoading(false);
+            showToast('Error al cargar detalles', 'error');
         }
     };
 
@@ -453,7 +462,6 @@ export default function EstudiantesManager() {
                 const cols = row.split(',');
                 if (cols.length < 3) continue; // Mínimo nombre, apellido, email
 
-                // Formato esperado CSV: Nombres,Apellidos,Email,Password,UniversidadID,PeriodoID
                 const [nombres, apellidos, email, password, uniId, perId] = cols.map(c => c.trim());
 
                 try {
@@ -461,7 +469,7 @@ export default function EstudiantesManager() {
                         nombres,
                         apellidos,
                         email,
-                        password: password || '123456', // Password por defecto si falta
+                        password: password || '123456',
                         universidad_id: uniId || '',
                         periodo_id: perId || ''
                     };
@@ -470,10 +478,11 @@ export default function EstudiantesManager() {
                     else errorCount++;
                 } catch (err) {
                     errorCount++;
+                    console.error(err);
                 }
             }
 
-            setSuccess(`Importación finalizada: ${successCount} creados, ${errorCount} fallidos.`);
+            showToast(`Importación finalizada: ${successCount} creados, ${errorCount} fallidos.`, 'info');
             setImporting(false);
             loadData();
             e.target.value = ''; // Reset input
@@ -491,14 +500,14 @@ export default function EstudiantesManager() {
                 try {
                     const data = await adminAPI.toggleEstudiante(estudiante.id);
                     if (data.success) {
-                        setSuccess(`Estudiante ${data.estudiante.activo ? 'activado' : 'desactivado'} correctamente`);
+                        showToast(`Estudiante ${data.estudiante.activo ? 'activado' : 'desactivado'} correctamente`, 'success');
                         loadData();
                     } else {
-                        setError(data.error || 'Error al cambiar estado');
+                        showToast(data.error || 'Error al cambiar estado', 'error');
                     }
                 } catch (err) {
                     console.error(err);
-                    setError('Error al actualizar estado');
+                    showToast('Error al actualizar estado', 'error');
                 }
             }
         });
@@ -559,9 +568,6 @@ export default function EstudiantesManager() {
                     </button>
                 </div>
             </div>
-
-            {error && <Alert type="error" message={error} onClose={() => setError('')} />}
-            {success && <Alert type="success" message={success} onClose={() => setSuccess('')} />}
 
             {/* Barra de Filtros */}
             <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 space-y-4 transition-colors duration-200">
@@ -640,7 +646,7 @@ export default function EstudiantesManager() {
 
             {/* Tabla de Estudiantes (Reemplaza Card grid para mejor densidad) */}
             {loading ? (
-                <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4 transition-colors duration-200">
+                <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 transition-colors duration-200">
                     <TableSkeleton rows={8} />
                 </div>
             ) : (
@@ -914,46 +920,46 @@ export default function EstudiantesManager() {
             >
                 {selectedStudent && (
                     <div className="space-y-6">
-                        <div className="flex items-center gap-4 p-4 bg-gray-50 rounded-lg">
-                            <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center text-2xl font-bold text-blue-700">
+                        <div className="flex items-center gap-4 p-4 bg-gray-50 dark:bg-gray-700/30 rounded-lg">
+                            <div className="w-16 h-16 bg-blue-100 dark:bg-blue-900/40 rounded-full flex items-center justify-center text-2xl font-bold text-blue-700 dark:text-blue-400">
                                 {selectedStudent.nombres.charAt(0)}
                             </div>
                             <div>
-                                <h3 className="text-xl font-bold text-gray-900">{selectedStudent.nombres} {selectedStudent.apellidos}</h3>
-                                <p className="text-gray-600">{selectedStudent.email}</p>
+                                <h3 className="text-xl font-bold text-gray-900 dark:text-white">{selectedStudent.nombres} {selectedStudent.apellidos}</h3>
+                                <p className="text-gray-600 dark:text-gray-300">{selectedStudent.email}</p>
                             </div>
                         </div>
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div className="p-4 border rounded-lg">
-                                <p className="text-sm text-gray-500 mb-1">Universidad</p>
-                                <p className="font-medium">
+                            <div className="p-4 border border-gray-200 dark:border-gray-700 rounded-lg">
+                                <p className="text-sm text-gray-500 dark:text-gray-400 mb-1">Universidad</p>
+                                <p className="font-medium text-gray-900 dark:text-white">
                                     {universidades.find(u => u.id === selectedStudent.universidad_id)?.nombre || 'No asignada'}
                                 </p>
                             </div>
-                            <div className="p-4 border rounded-lg">
-                                <p className="text-sm text-gray-500 mb-1">Periodo Actual</p>
-                                <p className="font-medium">
+                            <div className="p-4 border border-gray-200 dark:border-gray-700 rounded-lg">
+                                <p className="text-sm text-gray-500 dark:text-gray-400 mb-1">Periodo Actual</p>
+                                <p className="font-medium text-gray-900 dark:text-white">
                                     {periodos.find(p => p.id === selectedStudent.periodo_id)?.nombre || 'No asignado'}
                                 </p>
                             </div>
-                            <div className="p-4 border rounded-lg">
-                                <p className="text-sm text-gray-500 mb-1">Estado</p>
-                                <span className={`px-2 py-1 text-xs rounded-full font-semibold ${selectedStudent.activo ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                            <div className="p-4 border border-gray-200 dark:border-gray-700 rounded-lg">
+                                <p className="text-sm text-gray-500 dark:text-gray-400 mb-1">Estado</p>
+                                <span className={`px-2 py-1 text-xs rounded-full font-semibold ${selectedStudent.activo ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' : 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'}`}>
                                     {selectedStudent.activo ? 'Activo' : 'Inactivo'}
                                 </span>
                             </div>
-                            <div className="p-4 border rounded-lg">
-                                <p className="text-sm text-gray-500 mb-1">Total Horas</p>
-                                <p className="font-medium text-lg text-blue-600 font-bold">
-                                    {selectedStudent.totalHoras || 0} h
+                            <div className="p-4 border border-gray-200 dark:border-gray-700 rounded-lg">
+                                <p className="text-sm text-gray-500 dark:text-gray-400 mb-1">Horas Requeridas (Periodo Actual)</p>
+                                <p className="font-medium text-lg text-blue-600 dark:text-blue-400 font-bold">
+                                    {periodos.find(p => p.id === selectedStudent.periodo_id)?.horas_totales_requeridas || 0} h
                                 </p>
                             </div>
                         </div>
 
                         {/* TABS DE PERIODOS */}
                         <div>
-                            <div className="border-b border-gray-200 mb-4">
+                            <div className="border-b border-gray-200 dark:border-gray-700 mb-4">
                                 <nav className="-mb-px flex space-x-4 overflow-x-auto" aria-label="Tabs">
                                     {studentPeriodData.length > 0 ? (
                                         studentPeriodData.map((group, index) => (
@@ -963,70 +969,59 @@ export default function EstudiantesManager() {
                                                 className={`
                                                     whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm transition-colors
                                                     ${activeTab === index
-                                                        ? 'border-blue-500 text-blue-600'
-                                                        : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                                                        ? 'border-blue-500 text-blue-600 dark:text-blue-400 dark:border-blue-400'
+                                                        : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-200 dark:hover:border-gray-600'
                                                     }
                                                 `}
                                             >
                                                 {group.name}
-                                                <span className={`ml-2 py-0.5 px-2 rounded-full text-xs ${activeTab === index ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-600'
+                                                <span className={`ml-2 py-0.5 px-2 rounded-full text-xs ${activeTab === index ? 'bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300' : 'bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-300'
                                                     }`}>
-                                                    {group.horasAprobadas}h Aprob.
+                                                    {group.requiredHoras || 0}h Totales
                                                 </span>
                                             </button>
                                         ))
                                     ) : (
-                                        <p className="text-sm text-gray-500 py-2">Sin registros de actividad</p>
+                                        <p className="text-sm text-gray-500 dark:text-gray-400 py-2">Sin registros de actividad</p>
                                     )}
                                 </nav>
                             </div>
 
                             {/* CONTENIDO DEL TAB ACTIVO */}
                             {studentPeriodData.length > 0 && studentPeriodData[activeTab] && (
-                                <div className="bg-white border rounded-lg overflow-hidden animate-fadeIn">
-                                    <div className="p-3 bg-gray-50 border-b flex justify-between items-center">
-                                        <span className="text-sm font-medium text-gray-700">Resumen del Periodo</span>
-                                        <div className="text-sm text-gray-600">
+                                <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden animate-fadeIn">
+                                    <div className="p-3 bg-gray-50 dark:bg-gray-700/30 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
+                                        <span className="text-sm font-medium text-gray-700 dark:text-gray-200">Resumen del Periodo</span>
+                                        <div className="text-sm text-gray-600 dark:text-gray-300">
                                             Total Registrado: <b>{studentPeriodData[activeTab].totalHoras}h</b>
                                         </div>
                                     </div>
-                                    <table className="min-w-full divide-y divide-gray-200">
-                                        <thead className="bg-gray-50">
-                                            <tr>
-                                                <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Fecha</th>
-                                                <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Horas</th>
-                                                <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Descripción</th>
-                                                <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Estado</th>
-                                                <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Aprobador</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody className="divide-y divide-gray-200">
-                                            {studentPeriodData[activeTab].registros.map((reg, index) => (
-                                                <tr key={index} className="hover:bg-gray-50">
-                                                    <td className="px-4 py-2 text-sm text-gray-900">
-                                                        {new Date(reg.fecha).toLocaleDateString()}
-                                                    </td>
-                                                    <td className="px-4 py-2 text-sm text-gray-900 font-medium">
-                                                        {reg.horas} h
-                                                    </td>
-                                                    <td className="px-4 py-2 text-sm text-gray-500 truncate max-w-[200px]" title={reg.descripcion}>
-                                                        {reg.descripcion}
-                                                    </td>
-                                                    <td className="px-4 py-2 text-sm">
-                                                        <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${reg.estado?.nombre === 'Aprobado' ? 'bg-green-100 text-green-800' :
-                                                            reg.estado?.nombre === 'Rechazado' ? 'bg-red-100 text-red-800' :
-                                                                'bg-yellow-100 text-yellow-800'
-                                                            }`}>
-                                                            {reg.estado?.nombre || 'Pendiente'}
-                                                        </span>
-                                                    </td>
-                                                    <td className="px-4 py-2 text-sm text-gray-500">
-                                                        {reg.aprobadoPor?.nombres || '-'}
-                                                    </td>
+                                    <div className="overflow-x-auto">
+                                        <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                                            <thead className="bg-gray-50 dark:bg-gray-700/50">
+                                                <tr>
+                                                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Fecha</th>
+                                                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Horas</th>
+                                                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Descripción</th>
                                                 </tr>
-                                            ))}
-                                        </tbody>
-                                    </table>
+                                            </thead>
+                                            <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
+                                                {studentPeriodData[activeTab].registros.map((reg, index) => (
+                                                    <tr key={index} className="hover:bg-gray-50 dark:hover:bg-gray-700/30">
+                                                        <td className="px-4 py-2 text-sm text-gray-900 dark:text-gray-200">
+                                                            {new Date(reg.fecha).toLocaleDateString()}
+                                                        </td>
+                                                        <td className="px-4 py-2 text-sm text-gray-900 dark:text-gray-200 font-medium">
+                                                            {reg.horas} h
+                                                        </td>
+                                                        <td className="px-4 py-2 text-sm text-gray-500 dark:text-gray-400 truncate max-w-[200px]" title={reg.descripcion}>
+                                                            {reg.descripcion}
+                                                        </td>
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </table>
+                                    </div>
                                 </div>
                             )}
                         </div>
@@ -1051,18 +1046,18 @@ export default function EstudiantesManager() {
                 size="sm"
             >
                 <div className="space-y-4 text-center py-4">
-                    <p className="text-gray-600 text-sm">
+                    <p className="text-gray-600 dark:text-gray-300 text-sm">
                         Se ha generado la siguiente contraseña temporal. <br />
                         Compártela con el estudiante para que pueda acceder (luego podrá cambiarla).
                     </p>
 
-                    <div className="flex items-center justify-center gap-2 bg-gray-100 p-4 rounded-lg border border-gray-200">
-                        <span className="text-xl font-mono font-bold text-gray-800 tracking-wider select-all">
+                    <div className="flex items-center justify-center gap-2 bg-gray-100 dark:bg-gray-700/50 p-4 rounded-lg border border-gray-200 dark:border-gray-600">
+                        <span className="text-xl font-mono font-bold text-gray-800 dark:text-white tracking-wider select-all">
                             {tempPassword}
                         </span>
                         <button
                             onClick={copyToClipboard}
-                            className="p-1.5 hover:bg-gray-200 rounded-md transition-colors text-gray-500 hover:text-gray-700"
+                            className="p-1.5 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-md transition-colors text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-white"
                             title="Copiar al portapapeles"
                         >
                             {passwordCopied ? <Check className="w-4 h-4 text-green-600" /> : <Copy className="w-4 h-4" />}
@@ -1087,7 +1082,7 @@ export default function EstudiantesManager() {
                 size="sm"
             >
                 <div className="space-y-4">
-                    <p className="text-gray-600">{confirmation.message}</p>
+                    <p className="text-gray-600 dark:text-gray-300">{confirmation.message}</p>
                     <div className="flex justify-end gap-3 pt-2">
                         <button
                             onClick={handleConfirmClose}

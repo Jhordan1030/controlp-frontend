@@ -3,15 +3,15 @@ import { Search, Filter, RefreshCw, FileText, User, Shield, AlertTriangle, Downl
 import Card from '../common/Card';
 import LoadingSpinner from '../common/LoadingSpinner';
 import { TableSkeleton } from '../common/Skeleton';
-import Alert from '../common/Alert';
 import { adminAPI } from '../../services/api';
 import { formatDateShort, handleApiError } from '../../utils/helpers';
 import { downloadCSV, downloadPDF } from '../../utils/exportHelpers';
+import { useToast } from '../../context/ToastContext';
 
 export default function AuditoriaManager() {
     const [auditoria, setAuditoria] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [error, setError] = useState('');
+    const { showToast } = useToast();
 
     // Paginación
     const [page, setPage] = useState(1);
@@ -35,9 +35,14 @@ export default function AuditoriaManager() {
             const data = await adminAPI.getEstudiantes();
             if (data.success) {
                 const map = {};
-                data.estudiantes.forEach(est => {
-                    map[est.id] = `${est.nombres} ${est.apellidos}`;
-                });
+                // Usar for...of opciona si se prefiere, pero forEach esta bien
+                if (Array.isArray(data.estudiantes)) {
+                    data.estudiantes.forEach((est) => {
+                        const nombre = est.nombres || '';
+                        const apellido = est.apellidos || '';
+                        map[est.id] = (nombre + ' ' + apellido).trim();
+                    });
+                }
                 setUserMap(map);
             }
         } catch (err) {
@@ -63,10 +68,10 @@ export default function AuditoriaManager() {
                     setTotalPages(data.pagination.pages);
                 }
             } else {
-                setError(data.error || 'Error al cargar auditoría');
+                showToast(data.error || 'Error al cargar auditoría', 'error');
             }
         } catch (err) {
-            setError(handleApiError(err));
+            showToast(handleApiError(err), 'error');
         } finally {
             setLoading(false);
         }
@@ -156,8 +161,6 @@ export default function AuditoriaManager() {
                 </div>
             </div>
 
-            {error && <Alert type="error" message={error} onClose={() => setError('')} />}
-
             {/* Filtros */}
             <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 flex flex-wrap gap-4 items-end transition-colors duration-200">
                 <div className="w-full md:w-auto">
@@ -231,7 +234,7 @@ export default function AuditoriaManager() {
                                                             {log.usuario_tipo === 'estudiante' && userMap[log.usuario_id]
                                                                 ? userMap[log.usuario_id]
                                                                 : log.usuario_tipo === 'administrador'
-                                                                    ? `Admin (${log.usuario_id.substring(0, 8)}...)`
+                                                                    ? ('Admin(' + log.usuario_id.substring(0, 8) + '...)')
                                                                     : (log.usuario_id || 'Sistema')}
                                                         </div>
                                                         <div className="text-xs text-gray-500 dark:text-gray-400 uppercase">
@@ -246,7 +249,7 @@ export default function AuditoriaManager() {
                                                 </div>
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap">
-                                                <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full border ${getActionColor(log.accion)}`}>
+                                                <span className={'px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full border ' + getActionColor(log.accion)}>
                                                     {log.accion}
                                                 </span>
                                             </td>

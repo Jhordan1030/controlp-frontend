@@ -3,12 +3,13 @@ import { User, Lock, Save, Mail, Shield, AlertCircle, CheckCircle, Loader2 } fro
 import { useAuth } from '../../context/AuthContext';
 import { authAPI } from '../../services/api';
 import { handleApiError } from '../../utils/helpers';
+import { useToast } from '../../context/ToastContext';
 
 export default function AdminProfile() {
     const { user, updateUser } = useAuth();
     const [activeTab, setActiveTab] = useState('general');
     const [loading, setLoading] = useState(false);
-    const [message, setMessage] = useState({ type: '', text: '' });
+    const { showToast } = useToast();
 
     // Profile Form Data
     const [profileData, setProfileData] = useState({
@@ -34,15 +35,7 @@ export default function AdminProfile() {
         }
     }, [user]);
 
-    // Auto-dismiss message after 5 seconds
-    useEffect(() => {
-        if (message.text) {
-            const timer = setTimeout(() => {
-                setMessage({ type: '', text: '' });
-            }, 5000);
-            return () => clearTimeout(timer);
-        }
-    }, [message]);
+
 
     const handleProfileChange = (e) => {
         setProfileData({
@@ -60,19 +53,18 @@ export default function AdminProfile() {
 
     const handleUpdateProfile = async (e) => {
         e.preventDefault();
-        setMessage({ type: '', text: '' });
         setLoading(true);
 
         try {
             const data = await authAPI.actualizarPerfil(profileData);
             if (data.success) {
                 updateUser(data.user || profileData);
-                setMessage({ type: 'success', text: 'Perfil actualizado correctamente.' });
+                showToast('Perfil actualizado correctamente.', 'success');
             } else {
-                setMessage({ type: 'error', text: data.error || 'Error al actualizar perfil.' });
+                showToast(data.error || 'Error al actualizar perfil.', 'error');
             }
         } catch (err) {
-            setMessage({ type: 'error', text: handleApiError(err) });
+            showToast(handleApiError(err), 'error');
         } finally {
             setLoading(false);
         }
@@ -80,15 +72,14 @@ export default function AdminProfile() {
 
     const handleChangePassword = async (e) => {
         e.preventDefault();
-        setMessage({ type: '', text: '' });
 
         if (passwordData.nueva_password !== passwordData.confirmar_password) {
-            setMessage({ type: 'error', text: 'Las nuevas contraseñas no coinciden.' });
+            showToast('Las nuevas contraseñas no coinciden.', 'error');
             return;
         }
 
         if (passwordData.nueva_password.length < 6) {
-            setMessage({ type: 'error', text: 'La contraseña debe tener al menos 6 caracteres.' });
+            showToast('La contraseña debe tener al menos 6 caracteres.', 'error');
             return;
         }
 
@@ -102,17 +93,17 @@ export default function AdminProfile() {
             );
 
             if (data.success) {
-                setMessage({ type: 'success', text: 'Contraseña actualizada correctamente.' });
+                showToast('Contraseña actualizada correctamente.', 'success');
                 setPasswordData({
                     password_actual: '',
                     nueva_password: '',
                     confirmar_password: ''
                 });
             } else {
-                setMessage({ type: 'error', text: data.error || 'Error al cambiar contraseña.' });
+                showToast(data.error || 'Error al cambiar contraseña.', 'error');
             }
         } catch (err) {
-            setMessage({ type: 'error', text: handleApiError(err) });
+            showToast(handleApiError(err), 'error');
         } finally {
             setLoading(false);
         }
@@ -153,17 +144,7 @@ export default function AdminProfile() {
 
             {/* Content Area */}
             <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
-                {message.text && (
-                    <div className={`p-4 mx-6 mt-6 rounded-lg flex items-center gap-2 ${message.type === 'error' ? 'bg-red-50 text-red-700 border border-red-200' :
-                        message.type === 'success' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' :
-                            'bg-blue-50 text-blue-700 border border-blue-200'
-                        }`}>
-                        {message.type === 'error' ? <AlertCircle className="w-5 h-5 flex-shrink-0" /> :
-                            message.type === 'success' ? <CheckCircle className="w-5 h-5 flex-shrink-0" /> :
-                                <AlertCircle className="w-5 h-5 flex-shrink-0" />}
-                        <span className="text-sm font-medium">{message.text}</span>
-                    </div>
-                )}
+
 
                 <div className="p-6 md:p-8">
                     {activeTab === 'general' ? (

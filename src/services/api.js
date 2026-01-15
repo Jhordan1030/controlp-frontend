@@ -51,6 +51,11 @@ export const authAPI = {
         return data;
     },
 
+    getPerfil: async () => {
+        const { data } = await api.get('/auth/perfil');
+        return data;
+    },
+
     actualizarPerfil: async (datos) => {
         const { data } = await api.put('/auth/perfil', datos);
         return data;

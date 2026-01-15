@@ -4,18 +4,17 @@ import Card from '../common/Card';
 import Modal from '../common/Modal';
 import LoadingSpinner from '../common/LoadingSpinner';
 import { TableSkeleton, CardSkeleton } from '../common/Skeleton';
-import Alert from '../common/Alert';
 import { adminAPI } from '../../services/api';
 import { handleApiError, formatDateShort } from '../../utils/helpers';
 import { downloadCSV, downloadPDF } from '../../utils/exportHelpers';
+import { useToast } from '../../context/ToastContext';
 
 export default function PeriodosManager() {
     const [periodos, setPeriodos] = useState([]);
     const [universidades, setUniversidades] = useState([]);
     const [loading, setLoading] = useState(true);
     const [showModal, setShowModal] = useState(false);
-    const [error, setError] = useState('');
-    const [success, setSuccess] = useState('');
+    const { showToast } = useToast();
 
     const [formData, setFormData] = useState({
         universidad_id: '',
@@ -69,9 +68,11 @@ export default function PeriodosManager() {
             ]);
 
             if (periodosData.success) setPeriodos(periodosData.periodos);
-            if (universidadesData.success) setUniversidades(universidadesData.universidades);
+            if (universidadesData.success) {
+                setUniversidades(universidadesData.universidades);
+            }
         } catch (err) {
-            setError(handleApiError(err));
+            showToast('Error al cargar universidades', 'error');
         } finally {
             setLoading(false);
         }
@@ -156,7 +157,7 @@ export default function PeriodosManager() {
             setShowEstudiantesModal(true);
         } catch (err) {
             console.error('Error al cargar estudiantes', err);
-            setError('Error al cargar estudiantes del periodo');
+            showToast('Error al cargar estudiantes del periodo', 'error');
         }
     };
 
@@ -190,7 +191,7 @@ export default function PeriodosManager() {
             }
         } catch (err) {
             console.error(err);
-            setError('Error al cargar candidatos para inscripción');
+            showToast('Error al cargar candidatos para inscripción', 'error');
         } finally {
             setLoading(false);
         }
@@ -198,11 +199,10 @@ export default function PeriodosManager() {
 
     const handleInscribir = async (e) => {
         e.preventDefault();
-        setError('');
-        setSuccess('');
+
 
         if (selectedStudentIds.length === 0) {
-            setError('Seleccione al menos un estudiante');
+            showToast('Seleccione al menos un estudiante', 'error');
             return;
         }
 
@@ -217,14 +217,14 @@ export default function PeriodosManager() {
 
             await Promise.all(promises);
 
-            setSuccess(`${selectedStudentIds.length} estudiantes inscritos correctamente`);
+            showToast(`${selectedStudentIds.length} estudiantes inscritos correctamente`, 'success');
             setShowInscripcionModal(false);
 
             const periodoActual = periodos.find(p => p.id === currentId);
             if (periodoActual) handleVerEstudiantes(periodoActual);
 
         } catch (err) {
-            setError(handleApiError(err));
+            showToast(handleApiError(err), 'error');
         } finally {
             setLoading(false);
         }
@@ -270,7 +270,7 @@ export default function PeriodosManager() {
                     if (periodoActual) handleVerEstudiantes(periodoActual);
                 } catch (err) {
                     console.error(err);
-                    setError('Error al remover estudiante');
+                    showToast('Error al remover estudiante', 'error');
                 }
             }
         });
@@ -285,13 +285,13 @@ export default function PeriodosManager() {
                 try {
                     const data = await adminAPI.togglePeriodo(periodo.id);
                     if (data.success) {
-                        setSuccess(`Periodo ${data.periodo.activo ? 'activado' : 'desactivado'} correctamente`);
+                        showToast(`Periodo ${data.periodo.activo ? 'activado' : 'desactivado'} correctamente`, 'success');
                         loadData();
                     } else {
-                        setError(data.error || 'Error al cambiar estado');
+                        showToast(data.error || 'Error al cambiar estado', 'error');
                     }
                 } catch (err) {
-                    setError(handleApiError(err));
+                    showToast(handleApiError(err), 'error');
                 }
             }
         });
@@ -299,24 +299,29 @@ export default function PeriodosManager() {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        setError('');
-        setSuccess('');
+
+        // Validación básica de fechas
+        if (new Date(formData.fecha_inicio) >= new Date(formData.fecha_fin)) {
+            showToast('La fecha de inicio debe ser anterior a la fecha de fin', 'error');
+            return;
+        }
 
         try {
+            setLoading(true);
             const data = isEditing
                 ? await adminAPI.actualizarPeriodo(currentId, formData)
                 : await adminAPI.crearPeriodo(formData);
 
             if (data.success) {
-                setSuccess(isEditing ? 'Periodo actualizado exitosamente' : 'Periodo creado exitosamente');
+                showToast(isEditing ? 'Periodo actualizado exitosamente' : 'Periodo creado exitosamente', 'success');
                 resetForm();
                 setShowModal(false);
                 loadData();
             } else {
-                setError(data.error || 'Error al procesar la solicitud');
+                showToast(data.error || 'Error al procesar la solicitud', 'error');
             }
         } catch (err) {
-            setError(handleApiError(err));
+            showToast(handleApiError(err), 'error');
         }
     };
 
@@ -360,8 +365,6 @@ export default function PeriodosManager() {
                 </div>
             </div>
 
-            {error && <Alert type="error" message={error} onClose={() => setError('')} />}
-            {success && <Alert type="success" message={success} onClose={() => setSuccess('')} />}
 
             {/* Filtros */}
             <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 flex flex-wrap gap-4 items-end transition-colors duration-200">
