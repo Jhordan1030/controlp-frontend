@@ -4,12 +4,14 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { ThemeProvider } from './context/ThemeContext';
 import { ToastProvider } from './context/ToastContext';
+import { Suspense } from 'react';
 import LoadingSpinner from './components/common/LoadingSpinner';
-// Lazy load de páginas para mejorar rendimiento
-import Login from './pages/Login';
-import AdminPanel from './pages/AdminPanel';
-import EstudiantePanel from './pages/EstudiantePanel';
 import AutoLogout from './components/common/AutoLogout';
+
+// Lazy load de páginas para mejorar rendimiento (Code Splitting)
+const Login = React.lazy(() => import('./pages/Login'));
+const AdminPanel = React.lazy(() => import('./pages/AdminPanel'));
+const EstudiantePanel = React.lazy(() => import('./pages/EstudiantePanel'));
 
 // Componente para rutas protegidas
 function ProtectedRoute({ children, requiredRole }) {
@@ -52,36 +54,38 @@ function RoleBasedRedirect() {
 // Componente principal de rutas
 function AppRoutes() {
     return (
-        <Routes>
-            {/* Ruta pública */}
-            <Route path="/login" element={<Login />} />
+        <Suspense fallback={<LoadingSpinner fullScreen />}>
+            <Routes>
+                {/* Ruta pública */}
+                <Route path="/login" element={<Login />} />
 
-            {/* Ruta raíz - redirige según rol */}
-            <Route path="/" element={<RoleBasedRedirect />} />
+                {/* Ruta raíz - redirige según rol */}
+                <Route path="/" element={<RoleBasedRedirect />} />
 
-            {/* Rutas de Admin */}
-            <Route
-                path="/admin"
-                element={
-                    <ProtectedRoute requiredRole="administrador">
-                        <AdminPanel />
-                    </ProtectedRoute>
-                }
-            />
+                {/* Rutas de Admin */}
+                <Route
+                    path="/admin/*"
+                    element={
+                        <ProtectedRoute requiredRole="administrador">
+                            <AdminPanel />
+                        </ProtectedRoute>
+                    }
+                />
 
-            {/* Rutas de Estudiante */}
-            <Route
-                path="/estudiante"
-                element={
-                    <ProtectedRoute requiredRole="estudiante">
-                        <EstudiantePanel />
-                    </ProtectedRoute>
-                }
-            />
+                {/* Rutas de Estudiante */}
+                <Route
+                    path="/estudiante/*"
+                    element={
+                        <ProtectedRoute requiredRole="estudiante">
+                            <EstudiantePanel />
+                        </ProtectedRoute>
+                    }
+                />
 
-            {/* Ruta 404 */}
-            <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
+                {/* Ruta 404 */}
+                <Route path="*" element={<Navigate to="/" replace />} />
+            </Routes>
+        </Suspense>
     );
 }
 
