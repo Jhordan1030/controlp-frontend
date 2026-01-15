@@ -39,6 +39,59 @@ api.interceptors.response.use(
     }
 );
 
+// ========== CACHE SYSTEM ==========
+const cache = new Map();
+const CACHE_TTL = 30000; // 30 segundos de cache por defecto
+
+const getCacheKey = (url, config) => {
+    return `${url}?${JSON.stringify(config?.params || {})}`;
+};
+
+// Decorador para api.get con caching
+const originalGet = api.get;
+api.get = async (url, config = {}) => {
+    const key = getCacheKey(url, config);
+    const now = Date.now();
+
+    // Si existe en cache y no ha expirado
+    if (cache.has(key)) {
+        const { timestamp, data } = cache.get(key);
+        if (now - timestamp < CACHE_TTL) {
+            // Retornamos una promesa resuelta con la estructura de axios
+            console.log(`[CACHE] Hit: ${url}`);
+            return Promise.resolve({ data, status: 200, statusText: 'OK', headers: {}, config, request: {} });
+        }
+    }
+
+    // Si no, hacemos la petición real
+    try {
+        const response = await originalGet(url, config);
+        // Guardamos solo la data para ahorrar memoria
+        cache.set(key, { timestamp: now, data: response.data });
+        return response;
+    } catch (error) {
+        throw error;
+    }
+};
+
+// Invalidar cache en mutaciones (POST, PUT, DELETE)
+const invalidateCache = () => {
+    if (cache.size > 0) {
+        console.log('[CACHE] Invalidated');
+        cache.clear();
+    }
+};
+
+const originalPost = api.post;
+api.post = async (url, data, config) => { invalidateCache(); return originalPost(url, data, config); };
+
+const originalPut = api.put;
+api.put = async (url, data, config) => { invalidateCache(); return originalPut(url, data, config); };
+
+const originalDelete = api.delete;
+api.delete = async (url, config) => { invalidateCache(); return originalDelete(url, config); };
+
+
 // ========== AUTH ==========
 export const authAPI = {
     login: async (email, password) => {

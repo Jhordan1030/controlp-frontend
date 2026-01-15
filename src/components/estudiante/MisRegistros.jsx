@@ -3,18 +3,17 @@
 import React, { useState, useEffect } from 'react';
 import { Calendar, Clock, FileText, Trash2, AlertCircle, Plus } from 'lucide-react';
 import Card from '../common/Card';
-import Alert from '../common/Alert';
 import Modal from '../common/Modal';
+import { useToast } from '../../context/ToastContext';
 import MisRegistrosSkeleton from './MisRegistrosSkeleton';
 import RegistroHoras from './RegistroHoras';
 import { estudianteAPI } from '../../services/api';
 import { handleApiError, formatDateShort } from '../../utils/helpers';
 
 export default function MisRegistros() {
+    const { showToast } = useToast();
     const [registros, setRegistros] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [error, setError] = useState('');
-    const [success, setSuccess] = useState('');
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [showRegistroModal, setShowRegistroModal] = useState(false);
     const [registroToDelete, setRegistroToDelete] = useState(null);
@@ -50,7 +49,7 @@ export default function MisRegistros() {
             if (registrosData.success) {
                 setRegistros(registrosData.registros);
             } else {
-                setError(registrosData.error || 'Error al cargar registros');
+                showToast(registrosData.error || 'Error al cargar registros', 'error');
             }
 
             // Validación usando el nuevo campo del backend 'periodo_info'
@@ -65,7 +64,7 @@ export default function MisRegistros() {
             }
 
         } catch (err) {
-            setError(handleApiError(err));
+            showToast(handleApiError(err), 'error');
         } finally {
             setLoading(false);
         }
@@ -74,7 +73,7 @@ export default function MisRegistros() {
     const handleRegistroSuccess = () => {
         setShowRegistroModal(false);
         loadRegistros();
-        setSuccess('Registro agregado exitosamente');
+        showToast('Registro agregado exitosamente', 'success');
     };
 
     const handleDelete = async () => {
@@ -84,15 +83,15 @@ export default function MisRegistros() {
             const data = await estudianteAPI.eliminarRegistro(registroToDelete.id);
 
             if (data.success) {
-                setSuccess('Registro eliminado exitosamente');
+                showToast('Registro eliminado exitosamente', 'success');
                 setShowDeleteModal(false);
                 setRegistroToDelete(null);
                 loadRegistros();
             } else {
-                setError(data.error || 'Error al eliminar registro');
+                showToast(data.error || 'Error al eliminar registro', 'error');
             }
         } catch (err) {
-            setError(handleApiError(err));
+            showToast(handleApiError(err), 'error');
         }
     };
 
@@ -138,9 +137,6 @@ export default function MisRegistros() {
                     </div>
                 </div>
             )}
-
-            {error && <Alert type="error" message={error} onClose={() => setError('')} />}
-            {success && <Alert type="success" message={success} onClose={() => setSuccess('')} />}
 
             {/* Resumen */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -247,6 +243,7 @@ export default function MisRegistros() {
                     isModal={true}
                     onSuccess={handleRegistroSuccess}
                     onCancel={() => setShowRegistroModal(false)}
+                    existingRegistros={registros}
                 />
             </Modal>
 

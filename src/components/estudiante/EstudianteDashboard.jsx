@@ -3,7 +3,7 @@ import { BookOpen, Clock, Calendar, CheckCircle, GraduationCap, School, MapPin, 
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import Card from '../common/Card';
 import Modal from '../common/Modal';
-import Alert from '../common/Alert';
+import { useToast } from '../../context/ToastContext';
 import StudentDashboardSkeleton from './StudentDashboardSkeleton';
 import RegistroHoras from './RegistroHoras';
 import ActivityCalendar from './ActivityCalendar';
@@ -11,11 +11,10 @@ import { estudianteAPI } from '../../services/api';
 import { handleApiError, formatDateShort } from '../../utils/helpers';
 
 export default function EstudianteDashboard() {
+    const { showToast } = useToast();
     const [dashboardData, setDashboardData] = useState(null);
     const [allRegistros, setAllRegistros] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [error, setError] = useState('');
-    const [success, setSuccess] = useState('');
 
     const [showRegistroModal, setShowRegistroModal] = useState(false);
     const [periodoEstado, setPeriodoEstado] = useState({ finalizado: false, mensaje: '' });
@@ -62,7 +61,7 @@ export default function EstudianteDashboard() {
                 }
 
             } else {
-                setError(dashData.error || 'Error al cargar el dashboard');
+                showToast(dashData.error || 'Error al cargar el dashboard', 'error');
             }
 
             if (regsData.success) {
@@ -70,7 +69,7 @@ export default function EstudianteDashboard() {
                 setAllRegistros(regsData.registros);
             }
         } catch (err) {
-            setError(handleApiError(err));
+            showToast(handleApiError(err), 'error');
         } finally {
             setLoading(false);
         }
@@ -79,9 +78,7 @@ export default function EstudianteDashboard() {
     const handleRegistroSuccess = () => {
         setShowRegistroModal(false);
         loadDashboard();
-        setSuccess('¡Horas registradas exitosamente!');
-        // Auto-limpiar mensaje de éxito después de 3s
-        setTimeout(() => setSuccess(''), 3000);
+        showToast('¡Horas registradas exitosamente!', 'success');
     };
 
     // Procesar datos por semana
@@ -184,8 +181,6 @@ export default function EstudianteDashboard() {
                 </button>
             </div>
 
-            {error && <Alert type="error" message={error} onClose={() => setError('')} />}
-            {success && <Alert type="success" message={success} onClose={() => setSuccess('')} />}
             {periodoEstado.finalizado && (
                 <div className="bg-amber-50 dark:bg-amber-900/20 border-l-4 border-amber-400 p-4 rounded-r-lg flex items-center gap-3">
                     <AlertCircle className="w-6 h-6 text-amber-500" />
@@ -349,6 +344,7 @@ export default function EstudianteDashboard() {
                     isModal={true}
                     onSuccess={handleRegistroSuccess}
                     onCancel={() => setShowRegistroModal(false)}
+                    existingRegistros={allRegistros}
                 />
             </Modal>
         </div>

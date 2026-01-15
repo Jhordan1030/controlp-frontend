@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
 import { Plus, Calendar, Clock, FileText } from 'lucide-react';
 import Card from '../common/Card';
-import Alert from '../common/Alert';
+import { useToast } from '../../context/ToastContext';
 import { estudianteAPI } from '../../services/api';
 import { handleApiError } from '../../utils/helpers';
 
 export default function RegistroHoras({ onSuccess, onCancel, isModal = false }) {
+    const { showToast } = useToast();
     // Función para obtener la fecha local en formato YYYY-MM-DD
     const getLocalISODate = () => {
         const d = new Date();
@@ -18,8 +19,6 @@ export default function RegistroHoras({ onSuccess, onCancel, isModal = false }) 
         horas: '',
         descripcion: ''
     });
-    const [error, setError] = useState('');
-    const [success, setSuccess] = useState('');
     const [loading, setLoading] = useState(false);
 
     const handleChange = (e) => {
@@ -27,18 +26,15 @@ export default function RegistroHoras({ onSuccess, onCancel, isModal = false }) 
             ...formData,
             [e.target.name]: e.target.value
         });
-        setError('');
     };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        setError('');
-        setSuccess('');
         setLoading(true);
 
         // Validaciones
         if (parseFloat(formData.horas) < 0.5 || parseFloat(formData.horas) > 24) {
-            setError('Las horas deben estar entre 0.5 y 24');
+            showToast('Las horas deben estar entre 0.5 y 24', 'error');
             setLoading(false);
             return;
         }
@@ -48,7 +44,7 @@ export default function RegistroHoras({ onSuccess, onCancel, isModal = false }) 
         const hoyLocal = new Date(hoy.getTime() - offset).toISOString().split('T')[0];
 
         if (formData.fecha > hoyLocal) {
-            setError('No puedes registrar horas para fechas futuras');
+            showToast('No puedes registrar horas para fechas futuras', 'error');
             setLoading(false);
             return;
         }
@@ -62,7 +58,7 @@ export default function RegistroHoras({ onSuccess, onCancel, isModal = false }) 
             const data = await estudianteAPI.registrarHoras(payload);
 
             if (data.success) {
-                setSuccess('¡Horas registradas exitosamente!');
+                showToast('¡Horas registradas exitosamente!', 'success');
                 setFormData({
                     fecha: new Date().toISOString().split('T')[0],
                     horas: '',
@@ -70,7 +66,7 @@ export default function RegistroHoras({ onSuccess, onCancel, isModal = false }) 
                 });
                 if (onSuccess) onSuccess();
             } else {
-                setError(data.error || 'Error al registrar horas');
+                showToast(data.error || 'Error al registrar horas', 'error');
             }
         } catch (err) {
             console.error('Error detallado del registro:', err);
@@ -78,7 +74,7 @@ export default function RegistroHoras({ onSuccess, onCancel, isModal = false }) 
                 console.error('Respuesta del servidor:', err.response.data);
                 console.error('Status:', err.response.status);
             }
-            setError(handleApiError(err));
+            showToast(handleApiError(err), 'error');
         } finally {
             setLoading(false);
         }
@@ -192,8 +188,6 @@ export default function RegistroHoras({ onSuccess, onCancel, isModal = false }) 
     if (isModal) {
         return (
             <div className="space-y-4">
-                {error && <Alert type="error" message={error} onClose={() => setError('')} />}
-                {success && <Alert type="success" message={success} onClose={() => setSuccess('')} />}
                 {formContent}
             </div>
         );
@@ -205,9 +199,6 @@ export default function RegistroHoras({ onSuccess, onCancel, isModal = false }) 
                 <h2 className="text-2xl font-bold text-gray-900">Registrar Horas</h2>
                 <p className="text-gray-600 mt-1">Registra tus horas de prácticas diarias</p>
             </div>
-
-            {error && <Alert type="error" message={error} onClose={() => setError('')} />}
-            {success && <Alert type="success" message={success} onClose={() => setSuccess('')} />}
 
             <Card>
                 {formContent}

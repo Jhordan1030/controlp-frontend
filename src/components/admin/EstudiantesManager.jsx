@@ -380,23 +380,30 @@ export default function EstudiantesManager() {
     }, [selectedStudent, periodos]);
 
     const handleViewDetails = async (estudiante) => {
+        // Optimistic UI: Mostrar modal inmediatamente con datos básicos
+        setSelectedStudent(estudiante);
+        setActiveTab(0);
+        setShowDetailModal(true);
+
         try {
-            // No activamos loading global para evitar salto de página (skeleton)
             const data = await adminAPI.getEstudiante(estudiante.id);
             if (data.success) {
-                // Combinar datos frescos con las matriculaciones que ya tenemos en la lista
-                // porque getEstudiante (backend) a veces no retorna matriculaciones
-                setSelectedStudent({
-                    ...data.estudiante,
-                    matriculaciones: data.estudiante.matriculaciones || estudiante.matriculaciones || []
+                // Actualizar con datos detallados (registros, historial completo)
+                // Usamos callback form de setSelectedStudent para asegurar que no sobrescribimos si el usuario cerró rápido (edge case)
+                setSelectedStudent(prev => {
+                    if (!prev || prev.id !== estudiante.id) return prev; // El usuario cambió de estudiante o cerró
+                    return {
+                        ...data.estudiante,
+                        matriculaciones: data.estudiante.matriculaciones || estudiante.matriculaciones || []
+                    };
                 });
-                setActiveTab(0); // Reset ear al primer tab
-                setShowDetailModal(true);
             } else {
-                showToast('No se pudieron cargar los detalles', 'error');
+                // Silencioso o toast leve, ya mostramos datos parciales
+                console.error("No se pudieron cargar detalles completos");
             }
         } catch (err) {
-            showToast('Error al cargar detalles', 'error');
+            console.error("Error fetching details", err);
+            // No bloqueamos la UI
         }
     };
 
