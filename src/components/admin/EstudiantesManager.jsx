@@ -21,9 +21,16 @@ export default function EstudiantesManager() {
 
     // Filtros
     const [searchTerm, setSearchTerm] = useState('');
+    const [debouncedSearch, setDebouncedSearch] = useState('');
     const [filterUniversidad, setFilterUniversidad] = useState('');
     const [filterPeriodo, setFilterPeriodo] = useState('');
     const [filterEstado, setFilterEstado] = useState('all'); // all, active, inactive
+
+    // Pagination State
+    const [currentPage, setCurrentPage] = useState(1);
+    const [totalPages, setTotalPages] = useState(1);
+    const [totalStudents, setTotalStudents] = useState(0);
+    const [limit] = useState(20);
 
     // Estado para edición
     const [isEditing, setIsEditing] = useState(false);
@@ -60,22 +67,65 @@ export default function EstudiantesManager() {
         }
     };
 
+    // Debounce search term
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            setDebouncedSearch(searchTerm);
+            setCurrentPage(1); // Reset to page 1 on search change
+        }, 500);
+        return () => clearTimeout(timer);
+    }, [searchTerm]);
+
+    // Reload data when filters/page change
     useEffect(() => {
         loadData();
+    }, [currentPage, debouncedSearch, filterUniversidad, filterPeriodo, filterEstado]);
+
+    // Cargar listas auxiliares solo al inicio
+    useEffect(() => {
+        loadAuxiliaryData();
     }, []);
+
+    const loadAuxiliaryData = async () => {
+        try {
+            const [universidadesData, periodosData] = await Promise.all([
+                adminAPI.getUniversidades(),
+                adminAPI.getPeriodos()
+            ]);
+            if (universidadesData.success) setUniversidades(universidadesData.universidades);
+            if (periodosData.success) setPeriodos(periodosData.periodos);
+        } catch (err) {
+            console.error("Error loading auxiliary data", err);
+        }
+    };
 
     const loadData = async () => {
         try {
             setLoading(true);
-            const [estudiantesData, universidadesData, periodosData] = await Promise.all([
-                adminAPI.getEstudiantes(),
-                adminAPI.getUniversidades(),
-                adminAPI.getPeriodos()
-            ]);
 
-            if (estudiantesData.success) setEstudiantes(estudiantesData.estudiantes);
-            if (universidadesData.success) setUniversidades(universidadesData.universidades);
-            if (periodosData.success) setPeriodos(periodosData.periodos);
+            // Prepare params for backend
+            const params = {
+                page: currentPage,
+                limit: limit,
+                busqueda: debouncedSearch
+            };
+
+            // Add optional filters if backend supports them (sending them just in case)
+            if (filterUniversidad) params.universidad_id = filterUniversidad;
+            if (filterPeriodo) params.periodo_id = filterPeriodo;
+            if (filterEstado !== 'all') params.activo = filterEstado === 'active' ? 'true' : 'false';
+
+            const data = await adminAPI.getEstudiantes(params);
+
+            if (data.success) {
+                setEstudiantes(data.estudiantes || []);
+                // Update pagination info from backend response
+                // Assuming backend sends: { estudiantes: [], count: 100, totalPages: 5, currentPage: 1 }
+                setTotalStudents(data.count || 0);
+                setTotalPages(data.totalPages || 1);
+            } else {
+                setError(data.error || 'Error al cargar estudiantes');
+            }
         } catch (err) {
             setError(handleApiError(err));
         } finally {
@@ -83,25 +133,10 @@ export default function EstudiantesManager() {
         }
     };
 
-    const estudiantesFiltrados = useMemo(() => {
-        return estudiantes.filter(est => {
-            const matchesSearch =
-                est.nombres.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                est.apellidos.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                est.email.toLowerCase().includes(searchTerm.toLowerCase());
+    // No client-side filtering anymore within this memo
+    // But we keep this variable name to minimize refactoring impact on render
+    const estudiantesFiltrados = estudiantes;
 
-            // Comparación laxa por si vienen como string/number
-            const matchesUniversidad = !filterUniversidad || (est.universidad_id == filterUniversidad || est.Universidad?.id == filterUniversidad);
-            const matchesPeriodo = !filterPeriodo || (est.periodo_id == filterPeriodo || est.Periodo?.id == filterPeriodo);
-
-            const matchesEstado =
-                filterEstado === 'all' ? true :
-                    filterEstado === 'active' ? est.activo :
-                        !est.activo;
-
-            return matchesSearch && matchesUniversidad && matchesPeriodo && matchesEstado;
-        });
-    }, [estudiantes, searchTerm, filterUniversidad, filterPeriodo, filterEstado]);
 
     const handleChange = (e) => {
         const value = e.target.type === 'checkbox' ? e.target.checked : e.target.value;
@@ -537,14 +572,19 @@ export default function EstudiantesManager() {
                             type="text"
                             placeholder="Buscar por nombre, apellido o email..."
                             value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
+                            onChange={(e) => {
+                                setSearchTerm(e.target.value);
+                            }}
                             className="input-field pl-10 dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400"
                         />
                     </div>
                     <div className="flex gap-2 overflow-x-auto pb-2 md:pb-0">
                         <select
                             value={filterUniversidad}
-                            onChange={(e) => setFilterUniversidad(e.target.value)}
+                            onChange={(e) => {
+                                setFilterUniversidad(e.target.value);
+                                setCurrentPage(1);
+                            }}
                             className="input-field min-w-[150px] dark:bg-gray-700 dark:border-gray-600 dark:text-white"
                         >
                             <option value="">Todas las Universidades</option>
@@ -554,7 +594,10 @@ export default function EstudiantesManager() {
                         </select>
                         <select
                             value={filterPeriodo}
-                            onChange={(e) => setFilterPeriodo(e.target.value)}
+                            onChange={(e) => {
+                                setFilterPeriodo(e.target.value);
+                                setCurrentPage(1);
+                            }}
                             className="input-field min-w-[150px] dark:bg-gray-700 dark:border-gray-600 dark:text-white"
                         >
                             <option value="">Todos los Periodos</option>
@@ -564,7 +607,10 @@ export default function EstudiantesManager() {
                         </select>
                         <select
                             value={filterEstado}
-                            onChange={(e) => setFilterEstado(e.target.value)}
+                            onChange={(e) => {
+                                setFilterEstado(e.target.value);
+                                setCurrentPage(1);
+                            }}
                             className="input-field min-w-[120px] dark:bg-gray-700 dark:border-gray-600 dark:text-white"
                         >
                             <option value="all">Todos los Estados</option>
@@ -574,7 +620,7 @@ export default function EstudiantesManager() {
                     </div>
                 </div>
                 <div className="flex justify-between items-center text-sm text-gray-500 dark:text-gray-400">
-                    <span>Mostrando {estudiantesFiltrados.length} estudiantes</span>
+                    <span>Total: {totalStudents} estudiantes</span>
                     {(searchTerm || filterUniversidad || filterPeriodo || filterEstado !== 'all') && (
                         <button
                             onClick={() => {
@@ -582,6 +628,7 @@ export default function EstudiantesManager() {
                                 setFilterUniversidad('');
                                 setFilterPeriodo('');
                                 setFilterEstado('all');
+                                setCurrentPage(1);
                             }}
                             className="text-red-600 hover:text-red-800 underline flex items-center gap-1"
                         >
@@ -682,7 +729,28 @@ export default function EstudiantesManager() {
                             </tbody>
                         </table>
                     </div>
-                    {/* Paginación simple (opcional para v2) */}
+                    {/* Pagination Controls */}
+                    <div className="bg-gray-50 dark:bg-gray-700/50 px-6 py-4 border-t border-gray-200 dark:border-gray-700 flex items-center justify-between">
+                        <div className="text-sm text-gray-500 dark:text-gray-400">
+                            Página <span className="font-medium">{currentPage}</span> de <span className="font-medium">{totalPages}</span>
+                        </div>
+                        <div className="flex gap-2">
+                            <button
+                                onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                                disabled={currentPage === 1 || loading}
+                                className="px-3 py-1 text-sm rounded-md bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                            >
+                                Anterior
+                            </button>
+                            <button
+                                onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                                disabled={currentPage === totalPages || loading}
+                                className="px-3 py-1 text-sm rounded-md bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                            >
+                                Siguiente
+                            </button>
+                        </div>
+                    </div>
                 </div>
             )}
 

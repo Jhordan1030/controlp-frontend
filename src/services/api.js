@@ -1,7 +1,7 @@
 // ==================== src/services/api.js ====================
 import axios from 'axios';
 
-const API_URL = import.meta.env.VITE_API_URL || 'https://controlp-backend.vercel.app/api/v1';
+const API_URL = import.meta.env.DEV ? '/api/v1' : (import.meta.env.VITE_API_URL || 'https://controlp-backend.vercel.app/api/v1');
 
 const api = axios.create({
     baseURL: API_URL,
@@ -30,6 +30,10 @@ api.interceptors.response.use(
             localStorage.removeItem('token');
             localStorage.removeItem('user');
             window.location.href = '/';
+        }
+        // Debug: Log server errors
+        if (error.response?.status >= 500) {
+            console.error('Server Error (500+):', error.response.data);
         }
         return Promise.reject(error);
     }
@@ -113,8 +117,8 @@ export const adminAPI = {
     },
 
     // Estudiantes
-    getEstudiantes: async () => {
-        const { data } = await api.get('/admin/estudiantes');
+    getEstudiantes: async (params = {}) => {
+        const { data } = await api.get('/admin/estudiantes', { params });
         return data;
     },
 
@@ -159,6 +163,19 @@ export const estudianteAPI = {
 
     getPerfil: async () => {
         const { data } = await api.get('/estudiante/perfil');
+        return data;
+    },
+
+    actualizarPerfil: async (datos) => {
+        const { data } = await api.put('/estudiante/perfil', datos);
+        return data;
+    },
+
+    cambiarPassword: async (passwordActual, passwordNuevo) => {
+        const { data } = await api.put('/estudiante/cambiar-password', {
+            passwordActual,
+            passwordNuevo
+        });
         return data;
     },
 

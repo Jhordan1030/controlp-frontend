@@ -137,8 +137,10 @@ export default function EstudianteDashboard() {
     // So university and period were strings in `estudiante` object.
 
     // However, I want a richer dashboard. Let's use the data we have.
-    // Recalculate stats based on filtered records to ensure accuracy for the current period
-    const totalHoras = allRegistros.reduce((acc, curr) => acc + (parseFloat(curr.horas) || 0), 0);
+
+    // Use totalHoras from backend stats as source of truth, fallback to local calculation
+    // Backend update: estadisticas.totalHoras is now exact.
+    const totalHoras = parseFloat(stats.totalHoras) || allRegistros.reduce((acc, curr) => acc + (parseFloat(curr.horas) || 0), 0);
     const horasRequeridas = parseFloat(stats.horasRequeridas) || 0;
 
     // Calculate percentage based on local total
@@ -274,7 +276,7 @@ export default function EstudianteDashboard() {
                         Progreso Semanal (Horas)
                     </h3>
                     <div style={{ width: '100%', height: 250 }}>
-                        <ResponsiveContainer>
+                        <ResponsiveContainer width="100%" height="100%">
                             <BarChart data={weeklyData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
                                 <CartesianGrid strokeDasharray="3 3" vertical={false} />
                                 <XAxis dataKey="name" axisLine={false} tickLine={false} fontSize={12} tickMargin={10} />

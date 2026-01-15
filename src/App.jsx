@@ -3,6 +3,7 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { ThemeProvider } from './context/ThemeContext';
+import { ToastProvider } from './context/ToastContext';
 import LoadingSpinner from './components/common/LoadingSpinner';
 // Lazy load de páginas para mejorar rendimiento
 import Login from './pages/Login';
@@ -89,10 +90,12 @@ export default function App() {
     return (
         <Router>
             <ThemeProvider>
-                <AuthProvider>
-                    <AutoLogout />
-                    <AppRoutes />
-                </AuthProvider>
+                <ToastProvider>
+                    <AuthProvider>
+                        <AutoLogout />
+                        <AppRoutes />
+                    </AuthProvider>
+                </ToastProvider>
             </ThemeProvider>
         </Router>
     );

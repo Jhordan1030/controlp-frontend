@@ -1,17 +1,20 @@
 import React, { useState, useEffect } from 'react';
-import { User, Lock, Save, Mail, Building2, AlertCircle, CheckCircle, Loader2 } from 'lucide-react';
-import { useAuth } from '../../context/AuthContext'; // Assuming context is available
+import { User, Lock, Save, Mail, Building2, Loader2 } from 'lucide-react';
+import { useAuth } from '../../context/AuthContext';
 import { estudianteAPI } from '../../services/api';
+import { useToast } from '../../context/ToastContext';
 
 export default function MiPerfil() {
-    const { user } = useAuth();
+    const { user, updateUser } = useAuth();
+    const { showToast } = useToast();
     const [activeTab, setActiveTab] = useState('general');
     const [loading, setLoading] = useState(false);
+
     const [userData, setUserData] = useState({
-        nombres: '',
-        apellidos: '',
-        email: '',
-        universidad: '',
+        nombres: user?.nombres || '',
+        apellidos: user?.apellidos || '',
+        email: user?.email || '',
+        universidad: user?.universidad || '',
         periodo: ''
     });
 
@@ -21,32 +24,22 @@ export default function MiPerfil() {
         confirmPassword: ''
     });
 
-    const [message, setMessage] = useState({ type: '', text: '' });
-
-    useEffect(() => {
-        loadUserProfile();
-    }, []);
-
-    // Auto-dismiss message after 5 seconds
-    useEffect(() => {
-        if (message.text) {
-            const timer = setTimeout(() => {
-                setMessage({ type: '', text: '' });
-            }, 5000);
-            return () => clearTimeout(timer);
-        }
-    }, [message]);
+    // Remove local message state and effect
+    // const [message, setMessage] = useState({ type: '', text: '' });
+    // useEffect for message dismissal removed as ToastContext handles it
 
     const loadUserProfile = async () => {
         try {
             setLoading(true);
             const data = await estudianteAPI.getPerfil();
+            console.log('Datos perfil recibidos:', data); // Debug log
+
             if (data.success) {
                 setUserData({
-                    nombres: data.estudiante.nombres,
-                    apellidos: data.estudiante.apellidos,
-                    email: data.estudiante.email,
-                    universidad: data.estudiante.universidad || 'No asignada',
+                    nombres: data.estudiante.nombres || user?.nombres || '',
+                    apellidos: data.estudiante.apellidos || user?.apellidos || '',
+                    email: data.estudiante.email || user?.email || '',
+                    universidad: data.estudiante.universidad || user?.universidad || 'No asignada',
                     periodo: data.estudiante.periodo_id || 'No activo'
                 });
             }
@@ -60,37 +53,68 @@ export default function MiPerfil() {
     const handleInfoSubmit = async (e) => {
         e.preventDefault();
         setLoading(true);
-        setMessage({ type: '', text: '' });
+        // setMessage({ type: '', text: '' }); // toast handles this
 
-        // Simulation of API call
-        setTimeout(() => {
+        try {
+            const payload = {
+                nombres: userData.nombres,
+                apellidos: userData.apellidos
+            };
+            console.log('Enviando perfil:', payload);
+
+            const data = await estudianteAPI.actualizarPerfil(payload);
+
+            if (data.success) {
+                showToast(data.message || 'Perfil actualizado exitosamente', 'success');
+                // Update local context if needed, or just state
+                if (data.estudiante) {
+                    setUserData(prev => ({
+                        ...prev,
+                        nombres: data.estudiante.nombres,
+                        apellidos: data.estudiante.apellidos,
+                        email: data.estudiante.email
+                    }));
+
+                    // Update global auth context (Navbar sync)
+                    updateUser(data.estudiante);
+                }
+            } else {
+                showToast(data.message || 'Error al actualizar perfil', 'error');
+            }
+        } catch (error) {
+            console.error('Error al actualizar perfil:', error.response?.data);
+            showToast(error.response?.data?.message || 'Error de conexión al actualizar perfil', 'error');
+        } finally {
             setLoading(false);
-            setMessage({
-                type: 'info',
-                text: 'La funcionalidad de actualización estará disponible pronto (requiere actualización del servidor).'
-            });
-        }, 1500);
+        }
     };
 
     const handlePasswordSubmit = async (e) => {
         e.preventDefault();
-        setMessage({ type: '', text: '' });
 
         if (passwordData.newPassword !== passwordData.confirmPassword) {
-            setMessage({ type: 'error', text: 'Las nuevas contraseñas no coinciden.' });
+            showToast('Las nuevas contraseñas no coinciden.', 'error');
             return;
         }
 
         setLoading(true);
-        // Simulation of API call
-        setTimeout(() => {
+        try {
+            const data = await estudianteAPI.cambiarPassword(
+                passwordData.currentPassword,
+                passwordData.newPassword
+            );
+
+            if (data.success) {
+                showToast(data.message || 'Contraseña actualizada correctamente', 'success');
+                setPasswordData({ currentPassword: '', newPassword: '', confirmPassword: '' });
+            } else {
+                showToast(data.message || 'Error al cambiar contraseña', 'error');
+            }
+        } catch (error) {
+            showToast(error.response?.data?.message || 'Error al cambiar contraseña', 'error');
+        } finally {
             setLoading(false);
-            setMessage({
-                type: 'info',
-                text: 'El cambio de contraseña estará disponible pronto (requiere actualización del servidor).'
-            });
-            setPasswordData({ currentPassword: '', newPassword: '', confirmPassword: '' });
-        }, 1500);
+        }
     };
 
     return (
@@ -128,17 +152,7 @@ export default function MiPerfil() {
 
             {/* Content Area */}
             <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
-                {message.text && (
-                    <div className={`p-4 mx-6 mt-6 rounded-lg flex items-center gap-2 ${message.type === 'error' ? 'bg-red-50 text-red-700 border border-red-200' :
-                        message.type === 'success' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' :
-                            'bg-blue-50 text-blue-700 border border-blue-200'
-                        }`}>
-                        {message.type === 'error' ? <AlertCircle className="w-5 h-5 flex-shrink-0" /> :
-                            message.type === 'success' ? <CheckCircle className="w-5 h-5 flex-shrink-0" /> :
-                                <AlertCircle className="w-5 h-5 flex-shrink-0" />}
-                        <span className="text-sm font-medium">{message.text}</span>
-                    </div>
-                )}
+                {/* Global toast system handles messages now */}
 
                 <div className="p-6 md:p-8">
                     {activeTab === 'general' ? (

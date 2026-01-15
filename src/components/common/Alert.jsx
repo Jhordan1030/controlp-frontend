@@ -1,8 +1,7 @@
-// ==================== src/components/common/Alert.jsx ====================
 import React from 'react';
 import { CheckCircle, AlertCircle, Info, X } from 'lucide-react';
 
-export default function Alert({ type = 'info', message, onClose }) {
+export default function Alert({ type = 'info', message, onClose, className = '' }) {
     const types = {
         success: {
             bg: 'bg-green-50',
@@ -34,7 +33,7 @@ export default function Alert({ type = 'info', message, onClose }) {
     const Icon = config.icon;
 
     return (
-        <div className={`fixed top-4 right-4 z-50 shadow-lg min-w-[300px] max-w-sm animate-in slide-in-from-right-5 fade-in duration-300 ${config.bg} border ${config.border} rounded-lg p-3 flex items-center justify-between`}>
+        <div className={`shadow-lg min-w-[300px] max-w-sm animate-in slide-in-from-right-5 fade-in duration-300 ${config.bg} border ${config.border} rounded-lg p-3 flex items-center justify-between ${className || 'fixed top-4 right-4 z-50'}`}>
             <div className="flex items-center gap-3">
                 <Icon className={`w-5 h-5 ${config.text}`} />
                 <span className={`text-sm font-medium ${config.text}`}>{message}</span>
