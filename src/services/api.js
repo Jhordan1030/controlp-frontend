@@ -214,8 +214,8 @@ export const adminAPI = {
 
 // ========== ESTUDIANTE ==========
 export const estudianteAPI = {
-    getDashboard: async () => {
-        const { data } = await api.get('/estudiante/dashboard');
+    getDashboard: async (params = {}) => {
+        const { data } = await api.get('/estudiante/dashboard', { params });
         return data;
     },
 
@@ -247,8 +247,8 @@ export const estudianteAPI = {
         return data;
     },
 
-    getRegistrosPeriodo: async (periodoId) => {
-        const { data } = await api.get(`/estudiante/periodos/${periodoId}/registros`);
+    getRegistrosPeriodo: async (periodoId, params = {}) => {
+        const { data } = await api.get(`/estudiante/periodos/${periodoId}/registros`, { params });
         return data;
     },
 

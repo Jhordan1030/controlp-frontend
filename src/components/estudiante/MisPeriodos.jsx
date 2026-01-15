@@ -158,7 +158,7 @@ export default function MisPeriodos() {
                                         <td className="px-4 py-4">
                                             <div className="w-full">
                                                 <div className="flex items-center justify-between text-xs mb-1">
-                                                    <span className="font-medium text-gray-700 dark:text-gray-300">{Math.round(progreso)}%</span>
+                                                    <span className="font-medium text-gray-700 dark:text-gray-300">{progreso.toFixed(1)}%</span>
                                                     <span className="text-gray-500 dark:text-gray-400 whitespace-nowrap">{horasAcumuladas.toFixed(1)}/{horasRequeridas}h</span>
                                                 </div>
                                                 <div className="w-full bg-gray-100 dark:bg-gray-700 rounded-full h-2 overflow-hidden">
@@ -261,7 +261,7 @@ export default function MisPeriodos() {
                                     <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-3 border border-gray-100 dark:border-gray-700">
                                         <div className="flex justify-between text-xs mb-1.5">
                                             <span className="font-medium text-gray-700 dark:text-gray-300">Progreso General</span>
-                                            <span className="text-gray-500 dark:text-gray-400 font-medium">{Math.round(progreso)}%</span>
+                                            <span className="text-gray-500 dark:text-gray-400 font-medium">{progreso.toFixed(1)}%</span>
                                         </div>
                                         <div className="w-full bg-gray-200 dark:bg-gray-600 rounded-full h-1.5 mb-2">
                                             <div

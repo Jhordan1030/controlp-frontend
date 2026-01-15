@@ -23,13 +23,16 @@ export default function EstudianteDashboard() {
         loadDashboard();
     }, []);
 
-    const loadDashboard = async () => {
+    const loadDashboard = async (forceRefresh = false) => {
         try {
             setLoading(true);
 
+            // Params for cache busting
+            const params = forceRefresh ? { _t: Date.now() } : {};
+
             // 1. Cargar dashboard y perfil primero para obtener contexto
             const [dashData, perfilData] = await Promise.all([
-                estudianteAPI.getDashboard(),
+                estudianteAPI.getDashboard(params),
                 estudianteAPI.getPerfil()
             ]);
 
@@ -53,7 +56,7 @@ export default function EstudianteDashboard() {
 
                 // 2. Cargar registros específicos del periodo activo
                 if (currentPeriodId) {
-                    regsData = await estudianteAPI.getRegistrosPeriodo(currentPeriodId);
+                    regsData = await estudianteAPI.getRegistrosPeriodo(currentPeriodId, params);
                 } else {
                     // Fallback: si no hay periodo activo detectado, intentar carga general o dejar vacío/null
                     // regsData = await estudianteAPI.getRegistros();
@@ -77,7 +80,7 @@ export default function EstudianteDashboard() {
 
     const handleRegistroSuccess = () => {
         setShowRegistroModal(false);
-        loadDashboard();
+        loadDashboard(true);
         showToast('¡Horas registradas exitosamente!', 'success');
     };
 
