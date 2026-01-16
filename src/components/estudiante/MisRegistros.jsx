@@ -8,7 +8,8 @@ import { useToast } from '../../context/ToastContext';
 import MisRegistrosSkeleton from './MisRegistrosSkeleton';
 import RegistroHoras from './RegistroHoras';
 import { estudianteAPI } from '../../services/api';
-import { handleApiError, formatDateShort } from '../../utils/helpers';
+import { handleApiError } from '../../utils/helpers';
+import { formatDateForDisplay } from '../../utils/dateUtils';
 
 export default function MisRegistros() {
     const { showToast } = useToast();
@@ -193,7 +194,7 @@ export default function MisRegistros() {
                                         <div className="flex items-center flex-wrap gap-2 sm:gap-3 mb-2">
                                             <Calendar className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
                                             <span className="font-semibold text-gray-900 dark:text-white">
-                                                {formatDateShort(registro.fecha)}
+                                                {formatDateForDisplay(registro.fecha)}
                                             </span>
                                             <span className="px-3 py-1 bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 rounded-full text-xs font-bold uppercase tracking-wide">
                                                 {registro.horas} horas
@@ -203,7 +204,7 @@ export default function MisRegistros() {
                                             {registro.descripcion}
                                         </p>
                                         <div className="flex items-center gap-2 mt-2 sm:ml-8 text-xs text-gray-400">
-                                            <span>Registrado el {formatDateShort(registro.created_at)}</span>
+                                            <span>Registrado el {formatDateForDisplay(registro.created_at)}</span>
                                         </div>
                                     </div>
 
@@ -271,7 +272,7 @@ export default function MisRegistros() {
                         <div className="p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg text-sm border border-gray-200 dark:border-gray-600">
                             <div className="flex justify-between items-center mb-1">
                                 <span className="text-gray-500 dark:text-gray-400 text-xs uppercase font-bold">Fecha</span>
-                                <span className="font-medium text-gray-900 dark:text-white">{formatDateShort(registroToDelete.fecha)}</span>
+                                <span className="font-medium text-gray-900 dark:text-white">{formatDateForDisplay(registroToDelete.fecha)}</span>
                             </div>
                             <div className="flex justify-between items-center">
                                 <span className="text-gray-500 dark:text-gray-400 text-xs uppercase font-bold">Horas</span>

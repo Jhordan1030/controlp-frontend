@@ -3,15 +3,15 @@ import { Plus, Calendar, Clock, FileText } from 'lucide-react';
 import Card from '../common/Card';
 import { useToast } from '../../context/ToastContext';
 import { estudianteAPI } from '../../services/api';
+
 import { handleApiError } from '../../utils/helpers';
+import { getEcuadorDateISO } from '../../utils/dateUtils';
 
 export default function RegistroHoras({ onSuccess, onCancel, isModal = false }) {
     const { showToast } = useToast();
     // Función para obtener la fecha local en formato YYYY-MM-DD
     const getLocalISODate = () => {
-        const d = new Date();
-        const offset = d.getTimezoneOffset() * 60000;
-        return new Date(d.getTime() - offset).toISOString().split('T')[0];
+        return getEcuadorDateISO();
     };
 
     const [formData, setFormData] = useState({
@@ -39,9 +39,7 @@ export default function RegistroHoras({ onSuccess, onCancel, isModal = false }) 
             return;
         }
 
-        const hoy = new Date();
-        const offset = hoy.getTimezoneOffset() * 60000;
-        const hoyLocal = new Date(hoy.getTime() - offset).toISOString().split('T')[0];
+        const hoyLocal = getEcuadorDateISO();
 
         if (formData.fecha > hoyLocal) {
             showToast('No puedes registrar horas para fechas futuras', 'error');
@@ -60,7 +58,7 @@ export default function RegistroHoras({ onSuccess, onCancel, isModal = false }) 
             if (data.success) {
                 showToast('¡Horas registradas exitosamente!', 'success');
                 setFormData({
-                    fecha: new Date().toISOString().split('T')[0],
+                    fecha: getEcuadorDateISO(),
                     horas: '',
                     descripcion: ''
                 });
@@ -95,7 +93,7 @@ export default function RegistroHoras({ onSuccess, onCancel, isModal = false }) 
                     name="fecha"
                     value={formData.fecha}
                     onChange={handleChange}
-                    max={new Date(new Date().getTime() - (new Date().getTimezoneOffset() * 60000)).toISOString().split('T')[0]}
+                    max={getEcuadorDateISO()}
                     className="input-field"
                     required
                 />
@@ -157,12 +155,8 @@ export default function RegistroHoras({ onSuccess, onCancel, isModal = false }) 
                     <button
                         type="button"
                         onClick={() => {
-                            const d = new Date();
-                            const offset = d.getTimezoneOffset() * 60000;
-                            const localDate = new Date(d.getTime() - offset).toISOString().split('T')[0];
-
                             setFormData({
-                                fecha: localDate,
+                                fecha: getEcuadorDateISO(),
                                 horas: '',
                                 descripcion: ''
                             });

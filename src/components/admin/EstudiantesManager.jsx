@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 
-import { Plus, Users, Search, Filter, Download, Upload, MoreVertical, Edit, Trash2, Eye, X, Check, Lock, FileText, Key, Copy } from 'lucide-react';
+import { Plus, Users, Search, Filter, Download, Upload, MoreVertical, Edit, Trash2, Eye, EyeOff, X, Check, Lock, FileText, Key, Copy } from 'lucide-react';
+import { formatDateForDisplay } from '../../utils/dateUtils';
 import Card from '../common/Card';
 import Modal from '../common/Modal';
 import LoadingSpinner from '../common/LoadingSpinner';
@@ -35,6 +36,7 @@ export default function EstudiantesManager() {
     // Estado para edición
     const [isEditing, setIsEditing] = useState(false);
     const [currentId, setCurrentId] = useState(null);
+    const [showPassword, setShowPassword] = useState(false);
 
     const [formData, setFormData] = useState({
         nombres: '',
@@ -823,18 +825,40 @@ export default function EstudiantesManager() {
                         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                             {isEditing ? 'Nueva Contraseña (Opcional)' : 'Contraseña'}
                         </label>
-                        <div className="relative">
-                            <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                            <input
-                                type="password"
-                                name="password"
-                                value={formData.password}
-                                onChange={handleChange}
-                                className="input-field pl-10 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                                minLength="6"
-                                required={!isEditing}
-                                placeholder={isEditing ? "Dejar en blanco para mantener actual" : ""}
-                            />
+                        <div className="relative flex items-center gap-2">
+                            <div className="relative flex-1">
+                                <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                                <input
+                                    type={showPassword ? "text" : "password"}
+                                    name="password"
+                                    value={formData.password}
+                                    onChange={handleChange}
+                                    className="input-field pl-10 pr-10 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                                    minLength="6"
+                                    required={!isEditing}
+                                    placeholder={isEditing ? "Dejar en blanco para mantener actual" : ""}
+                                />
+                                <button
+                                    type="button"
+                                    onClick={() => setShowPassword(!showPassword)}
+                                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
+                                >
+                                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                                </button>
+                            </div>
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    const newPass = Math.random().toString(36).slice(-8) + Math.random().toString(36).slice(-4).toUpperCase();
+                                    setFormData({ ...formData, password: newPass });
+                                    setShowPassword(true);
+                                }}
+                                className="px-3 py-2 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors text-sm font-medium flex items-center gap-1"
+                                title="Generar contraseña automática"
+                            >
+                                <Key className="w-4 h-4" />
+                                Generar
+                            </button>
                         </div>
                     </div>
 
@@ -1016,7 +1040,7 @@ export default function EstudiantesManager() {
                                                 {studentPeriodData[activeTab].registros.map((reg, index) => (
                                                     <tr key={index} className="hover:bg-gray-50 dark:hover:bg-gray-700/30">
                                                         <td className="px-4 py-2 text-sm text-gray-900 dark:text-gray-200">
-                                                            {new Date(reg.fecha).toLocaleDateString()}
+                                                            {formatDateForDisplay(reg.fecha)}
                                                         </td>
                                                         <td className="px-4 py-2 text-sm text-gray-900 dark:text-gray-200 font-medium">
                                                             {reg.horas} h

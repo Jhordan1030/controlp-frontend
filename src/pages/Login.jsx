@@ -3,6 +3,7 @@ import { useNavigate, Navigate } from 'react-router-dom';
 import { BookOpen, Mail, Lock, AlertCircle, Loader } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { authAPI } from '../services/api';
+import ForcePasswordChange from '../components/auth/ForcePasswordChange';
 
 export default function Login() {
     const { user, login } = useAuth();
@@ -14,6 +15,10 @@ export default function Login() {
     });
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
+
+    // Estado para forzar cambio de contraseña
+    const [authData, setAuthData] = useState(null); // Guardar token y usuario temporalmente
+    const [showForceChange, setShowForceChange] = useState(false);
 
     // Si ya está autenticado, redirigir según su rol
     if (user) {
@@ -39,8 +44,15 @@ export default function Login() {
             if (data.success) {
                 const { token, usuario } = data;
 
-                login(token, usuario);
-                navigate('/', { replace: true });
+                if (usuario.debe_cambiar_password) {
+                    // Si debe cambiar contraseña, guardamos datos temporales y mostramos el modal
+                    setAuthData({ token, usuario });
+                    setShowForceChange(true);
+                } else {
+                    // Flujo normal
+                    login(token, usuario);
+                    navigate('/', { replace: true });
+                }
             } else {
                 setError(data.error || 'Error al iniciar sesión');
             }
@@ -81,7 +93,9 @@ export default function Login() {
         }
     };
 
-    return (
+
+
+    const mainContent = (
         <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 flex items-center justify-center p-4 transition-colors duration-200">
             <div className="max-w-md w-full">
                 {/* Logo y título */}
@@ -203,4 +217,30 @@ export default function Login() {
             </div>
         </div>
     );
+
+    // Si debe cambiar contraseña, mostramos el componente encima (o reemplazando)
+    if (showForceChange && authData) {
+        return (
+            <ForcePasswordChange
+                token={authData.token}
+                user={authData.usuario}
+                initialPassword={formData.password}
+                onSuccess={() => {
+                    // Al tener éxito, completamos el login con los datos que ya teníamos
+                    // IMPORTANTE: El backend ya actualizó debe_cambiar_password a false, pero nuestro objeto local usuario aún tiene true.
+                    // Podemos actualizarlo manualmente antes de guardarlo.
+                    const updatedUser = { ...authData.usuario, debe_cambiar_password: false };
+                    login(authData.token, updatedUser);
+                    navigate('/', { replace: true });
+                }}
+                onCancel={() => {
+                    setShowForceChange(false);
+                    setAuthData(null);
+                    setFormData(prev => ({ ...prev, password: '' })); // Limpiar password por seguridad
+                }}
+            />
+        );
+    }
+
+    return mainContent;
 }

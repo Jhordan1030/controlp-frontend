@@ -229,11 +229,11 @@ export const estudianteAPI = {
         return data;
     },
 
-    cambiarPassword: async (passwordActual, passwordNuevo) => {
+    cambiarPassword: async (passwordActual, passwordNuevo, config = {}) => {
         const { data } = await api.put('/estudiante/cambiar-password', {
             passwordActual,
             passwordNuevo
-        });
+        }, config);
         return data;
     },
 
