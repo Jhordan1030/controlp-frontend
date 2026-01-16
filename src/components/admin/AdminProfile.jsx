@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { User, Lock, Save, Mail, Shield, AlertCircle, CheckCircle, Loader2 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
-import { authAPI } from '../../services/api';
+import { authAPI, adminAPI } from '../../services/api';
 import { handleApiError } from '../../utils/helpers';
 import { useToast } from '../../context/ToastContext';
 
@@ -87,10 +87,11 @@ export default function AdminProfile() {
         setLoading(true);
 
         try {
-            // Note: reusing authAPI endpoint for generic auth user (admin)
-            const data = await authAPI.cambiarPassword(
+            // Usar adminAPI para cambiar contraseña de administrador
+            const data = await adminAPI.cambiarPassword(
                 passwordData.password_actual,
-                passwordData.nueva_password
+                passwordData.nueva_password,
+                { skipGlobalErrorHandler: true }
             );
 
             if (data.success) {
@@ -104,7 +105,11 @@ export default function AdminProfile() {
                 showToast(data.error || 'Error al cambiar contraseña.', 'error');
             }
         } catch (err) {
-            showToast(handleApiError(err), 'error');
+            if (err.response?.status === 401) {
+                showToast('La contraseña actual es incorrecta.', 'error');
+            } else {
+                showToast(handleApiError(err), 'error');
+            }
         } finally {
             setLoading(false);
         }

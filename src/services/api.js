@@ -209,6 +209,14 @@ export const adminAPI = {
     getAuditoria: async (params = {}) => {
         const { data } = await api.get('/admin/auditoria', { params });
         return data;
+    },
+
+    cambiarPassword: async (password_actual, nueva_password) => {
+        const { data } = await api.put('/admin/cambiar-password', {
+            passwordActual: password_actual,
+            passwordNuevo: nueva_password
+        });
+        return data;
     }
 };
 
