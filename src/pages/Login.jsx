@@ -79,19 +79,7 @@ export default function Login() {
         }
     };
 
-    const fillDemoCredentials = (type) => {
-        if (type === 'admin') {
-            setFormData({
-                email: 'admin@controlpracticas.com',
-                password: 'Admin123!'
-            });
-        } else {
-            setFormData({
-                email: 'juan@estudiante.com',
-                password: '9i4y1an7T1D3'
-            });
-        }
-    };
+
 
 
 
@@ -179,40 +167,13 @@ export default function Login() {
                         </button>
                     </form>
 
-                    {/* Demo credentials */}
-                    <div className="mt-8 pt-6 border-t border-gray-200 dark:border-gray-700">
-                        <p className="text-xs text-gray-600 dark:text-gray-400 font-semibold mb-3 text-center">
-                            Credenciales de prueba:
-                        </p>
-                        <div className="grid grid-cols-2 gap-3">
-                            <button
-                                type="button"
-                                onClick={() => fillDemoCredentials('admin')}
-                                className="px-4 py-2 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 rounded-lg text-xs font-medium hover:bg-indigo-100 dark:hover:bg-indigo-900/50 transition"
-                            >
-                                Cargar Admin
-                            </button>
-                            <button
-                                type="button"
-                                onClick={() => fillDemoCredentials('estudiante')}
-                                className="px-4 py-2 bg-purple-50 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 rounded-lg text-xs font-medium hover:bg-purple-100 dark:hover:bg-purple-900/50 transition"
-                            >
-                                Cargar Estudiante
-                            </button>
-                        </div>
-                        <div className="mt-3 space-y-1 text-xs text-gray-500 dark:text-gray-400">
-                            <p>Admin: admin@controlpracticas.com</p>
-                            <p>Estudiante: juan.perez@ejemplo.com</p>
-                            <p>Contraseña: <span className="font-mono">Admin123!</span> para admin</p>
-                            <p>Contraseña: <span className="font-mono">Estudiante123!</span> para estudiante</p>
-                        </div>
-                    </div>
+                    {/* Demo credentials removed */}
                 </div>
 
                 {/* Footer */}
                 <div className="mt-6 text-center text-sm text-gray-600 dark:text-gray-400">
                     <p>Sistema de Control de Prácticas Universitarias</p>
-                    <p className="text-xs text-gray-400 mt-1">v1.0.0 - 2025</p>
+                    <p className="text-xs text-gray-400 mt-1">v2.0.0 - {new Date().getFullYear()}</p>
                 </div>
             </div>
         </div>
