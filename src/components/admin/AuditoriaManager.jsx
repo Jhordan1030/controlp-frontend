@@ -3,7 +3,7 @@ import { Search, Filter, RefreshCw, FileText, User, Shield, AlertTriangle, Downl
 import Card from '../common/Card';
 import LoadingSpinner from '../common/LoadingSpinner';
 import { TableSkeleton } from '../common/Skeleton';
-import { adminAPI } from '../../services/api';
+import { adminAPI, authAPI } from '../../services/api'; // Import authAPI
 import { formatDateShort, handleApiError } from '../../utils/helpers';
 import { downloadCSV, downloadPDF } from '../../utils/exportHelpers';
 import { useToast } from '../../context/ToastContext';
@@ -24,27 +24,54 @@ export default function AuditoriaManager() {
 
     const [userMap, setUserMap] = useState({});
 
+    // Cargar datos cuando cambian los filtros o la página
     useEffect(() => {
         loadData();
-        loadUsers();
     }, [page, filterTipoUsuario, filterAccion]);
+
+    // Resetear página cuando cambian los filtros
+    useEffect(() => {
+        setPage(1);
+    }, [filterTipoUsuario, filterAccion]);
+
+    // Cargar mapa de usuarios al inicio
+    useEffect(() => {
+        loadUsers();
+    }, []);
 
     const loadUsers = async () => {
         try {
-            // Cargar estudiantes para mapear Nombres
-            const data = await adminAPI.getEstudiantes();
-            if (data.success) {
-                const map = {};
-                // Usar for...of opciona si se prefiere, pero forEach esta bien
-                if (Array.isArray(data.estudiantes)) {
-                    data.estudiantes.forEach((est) => {
+            const map = {};
+
+            // 1. Cargar perfil del admin actual para mapearse a sí mismo
+            try {
+                const perfilData = await authAPI.getPerfil();
+                if (perfilData.success) {
+                    const usr = perfilData.usuario || perfilData.admin; // Adjust based on response structure
+                    if (usr && usr.id) {
+                        const nombre = usr.nombres || usr.nombre || 'Administrador';
+                        const apellido = usr.apellidos || '';
+                        map[usr.id] = (nombre + ' ' + apellido).trim();
+                    }
+                }
+            } catch (e) {
+                console.warn('No se pudo cargar perfil para auditoria', e);
+            }
+
+            // 2. Cargar masiva de estudiantes (limit alto hack para diccionario)
+            // Idealmente esto debería ser un endpoint de búsqueda por IDs o select
+            const estData = await adminAPI.getEstudiantes({ limit: 1000 });
+            if (estData.success) {
+                if (Array.isArray(estData.estudiantes)) {
+                    estData.estudiantes.forEach((est) => {
                         const nombre = est.nombres || '';
                         const apellido = est.apellidos || '';
                         map[est.id] = (nombre + ' ' + apellido).trim();
                     });
                 }
-                setUserMap(map);
             }
+            setUserMap(map);
+
         } catch (err) {
             console.error('Error cargando usuarios para auditoría:', err);
         }
@@ -57,7 +84,8 @@ export default function AuditoriaManager() {
                 page,
                 limit,
                 usuario_tipo: filterTipoUsuario || undefined,
-                accion: filterAccion || undefined
+                accion: filterAccion || undefined,
+                search: filterAccion || undefined
             };
 
             const data = await adminAPI.getAuditoria(params);
@@ -178,14 +206,17 @@ export default function AuditoriaManager() {
                 </div>
                 <div className="w-full md:w-auto">
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Acción</label>
-                    <input
-                        type="text"
-                        placeholder="Ej. LOGIN, CREATE..."
+                    <select
                         value={filterAccion}
-                        onChange={(e) => setFilterAccion(e.target.value)}
-                        onKeyDown={(e) => e.key === 'Enter' && setPage(1)}
-                        className="input-field dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400"
-                    />
+                        onChange={(e) => { setFilterAccion(e.target.value); setPage(1); }}
+                        className="input-field dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                    >
+                        <option value="">Todas</option>
+                        <option value="LOGIN_SUCCESS">Inicio de Sesión</option>
+                        <option value="CREATE">Creación</option>
+                        <option value="UPDATE">Actualización</option>
+                        <option value="DELETE">Eliminación</option>
+                    </select>
                 </div>
                 <div className="pb-1 text-sm text-gray-500 dark:text-gray-400 flex items-center gap-1">
                     <Filter className="w-4 h-4" />
@@ -231,10 +262,10 @@ export default function AuditoriaManager() {
                                                     <User className="w-4 h-4 text-gray-400 dark:text-gray-500 mr-2" />
                                                     <div>
                                                         <div className="text-sm font-medium text-gray-900 dark:text-white">
-                                                            {log.usuario_tipo === 'estudiante' && userMap[log.usuario_id]
+                                                            {userMap[log.usuario_id]
                                                                 ? userMap[log.usuario_id]
                                                                 : log.usuario_tipo === 'administrador'
-                                                                    ? ('Admin(' + log.usuario_id.substring(0, 8) + '...)')
+                                                                    ? ('Admin (' + log.usuario_id.substring(0, 8) + '...)')
                                                                     : (log.usuario_id || 'Sistema')}
                                                         </div>
                                                         <div className="text-xs text-gray-500 dark:text-gray-400 uppercase">
