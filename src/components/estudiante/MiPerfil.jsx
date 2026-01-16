@@ -14,7 +14,7 @@ export default function MiPerfil() {
         nombres: user?.nombres || '',
         apellidos: user?.apellidos || '',
         email: user?.email || '',
-        universidad: user?.universidad || '',
+        universidad: user?.Universidad?.nombre || user?.universidad || '',
         periodo: ''
     });
 
@@ -32,14 +32,14 @@ export default function MiPerfil() {
         try {
             setLoading(true);
             const data = await estudianteAPI.getPerfil();
-            console.log('Datos perfil recibidos:', data); // Debug log
+            console.log('Datos perfil recibidos:', data);
 
             if (data.success) {
                 setUserData({
-                    nombres: data.estudiante.nombres || user?.nombres || '',
-                    apellidos: data.estudiante.apellidos || user?.apellidos || '',
-                    email: data.estudiante.email || user?.email || '',
-                    universidad: data.estudiante.universidad || user?.universidad || 'No asignada',
+                    nombres: data.estudiante.nombres || '',
+                    apellidos: data.estudiante.apellidos || '',
+                    email: data.estudiante.email || '',
+                    universidad: data.estudiante.universidad || 'No asignada',
                     periodo: data.estudiante.periodo_id || 'No activo'
                 });
             }
@@ -49,6 +49,10 @@ export default function MiPerfil() {
             setLoading(false);
         }
     };
+
+    useEffect(() => {
+        loadUserProfile();
+    }, []);
 
     const handleInfoSubmit = async (e) => {
         e.preventDefault();

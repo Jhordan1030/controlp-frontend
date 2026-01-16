@@ -14,7 +14,7 @@ export default function AdminProfile() {
     // Profile Form Data
     const [profileData, setProfileData] = useState({
         nombres: '',
-        apellidos: '',
+        nombres: '',
         email: ''
     });
 
@@ -29,7 +29,8 @@ export default function AdminProfile() {
         if (user) {
             setProfileData({
                 nombres: user.nombres || '',
-                apellidos: user.apellidos || '',
+                nombres: user.nombres || '',
+                // Admin no tiene apellidos
                 email: user.email || ''
             });
         }
@@ -164,20 +165,7 @@ export default function AdminProfile() {
                                         />
                                     </div>
                                 </div>
-                                <div className="space-y-2">
-                                    <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Apellidos</label>
-                                    <div className="relative">
-                                        <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                                        <input
-                                            type="text"
-                                            name="apellidos"
-                                            value={profileData.apellidos}
-                                            onChange={handleProfileChange}
-                                            required
-                                            className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-colors"
-                                        />
-                                    </div>
-                                </div>
+
                                 <div className="space-y-2">
                                     <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Email</label>
                                     <div className="relative">

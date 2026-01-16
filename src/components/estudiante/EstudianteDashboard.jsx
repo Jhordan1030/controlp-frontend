@@ -81,7 +81,7 @@ export default function EstudianteDashboard() {
     const handleRegistroSuccess = () => {
         setShowRegistroModal(false);
         loadDashboard(true);
-        showToast('¡Horas registradas exitosamente!', 'success');
+        // Toast handled by RegistroHoras component
     };
 
     // Procesar datos por semana
