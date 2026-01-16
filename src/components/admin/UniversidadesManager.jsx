@@ -8,6 +8,7 @@ import { downloadCSV, downloadPDF } from '../../utils/exportHelpers';
 import { useToast } from '../../context/ToastContext';
 import { adminAPI } from '../../services/api'; // Check path
 import { handleApiError } from '../../utils/helpers'; // Check path
+import { formatDateForDisplay } from '../../utils/dateUtils';
 
 export default function UniversidadesManager() {
     const [universidades, setUniversidades] = useState([]);
@@ -308,8 +309,8 @@ export default function UniversidadesManager() {
                                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">{formatDateForDisplay(periodo.fecha_inicio)}</td>
                                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">{formatDateForDisplay(periodo.fecha_fin)}</td>
                                                 <td className="px-6 py-4 whitespace-nowrap">
-                                                    <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${periodo.activo ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400' : 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400'}`}>
-                                                        {periodo.activo ? 'Activo' : 'Inactivo'}
+                                                    <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${periodo.activo ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400' : 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300'}`}>
+                                                        {periodo.activo ? 'En Proceso' : 'Finalizado'}
                                                     </span>
                                                 </td>
                                             </tr>
