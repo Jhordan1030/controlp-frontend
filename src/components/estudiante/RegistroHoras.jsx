@@ -126,7 +126,7 @@ export default function RegistroHoras({ onSuccess, onCancel, isModal = false }) 
                 <label className="block text-sm font-semibold text-gray-700 mb-2">
                     <div className="flex items-center gap-2">
                         <FileText className="w-4 h-4" />
-                        Descripción de Actividades
+                        Descripción de Actividades <span className="text-gray-400 font-normal text-xs">(Opcional)</span>
                     </div>
                 </label>
                 <textarea
@@ -136,7 +136,6 @@ export default function RegistroHoras({ onSuccess, onCancel, isModal = false }) 
                     rows="4"
                     className="input-field resize-none"
                     placeholder="Describe las actividades realizadas..."
-                    required
                 />
             </div>
 

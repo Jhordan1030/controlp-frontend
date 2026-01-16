@@ -1,7 +1,7 @@
 
 // ==================== src/components/estudiante/MisRegistros.jsx ====================
 import React, { useState, useEffect } from 'react';
-import { Calendar, Clock, FileText, Trash2, AlertCircle, Plus } from 'lucide-react';
+import { Calendar, Clock, FileText, Trash2, AlertCircle, Plus, Printer } from 'lucide-react';
 import Card from '../common/Card';
 import Modal from '../common/Modal';
 import { useToast } from '../../context/ToastContext';
@@ -11,6 +11,8 @@ import { estudianteAPI } from '../../services/api';
 import { handleApiError } from '../../utils/helpers';
 import { formatDateForDisplay } from '../../utils/dateUtils';
 
+import { generateRegistrosReport } from '../../utils/pdfGenerator';
+
 export default function MisRegistros() {
     const { showToast } = useToast();
     const [registros, setRegistros] = useState([]);
@@ -19,6 +21,7 @@ export default function MisRegistros() {
     const [showRegistroModal, setShowRegistroModal] = useState(false);
     const [registroToDelete, setRegistroToDelete] = useState(null);
     const [periodoEstado, setPeriodoEstado] = useState({ finalizado: false, mensaje: '' });
+    const [pdfData, setPdfData] = useState({ estudiante: {}, periodo: {} });
 
     useEffect(() => {
         loadRegistros();
@@ -28,10 +31,11 @@ export default function MisRegistros() {
         try {
             setLoading(true);
 
-            // 1. Primero obtenemos el contexto (Dashboard y Perfil) para saber el periodo activo
-            const [dashboardData, perfilData] = await Promise.all([
+            // 1. Fetch Dashboard, Profile, AND MisPeriodos for accurate metadata
+            const [dashboardData, perfilData, periodosData] = await Promise.all([
                 estudianteAPI.getDashboard(),
-                estudianteAPI.getPerfil()
+                estudianteAPI.getPerfil(),
+                estudianteAPI.getMisPeriodos()
             ]);
 
             // 2. Determinamos el ID del periodo activo
@@ -48,7 +52,10 @@ export default function MisRegistros() {
             }
 
             if (registrosData.success) {
-                setRegistros(registrosData.registros);
+                const sortedRegistros = registrosData.registros.sort((a, b) => {
+                    return new Date(b.fecha) - new Date(a.fecha);
+                });
+                setRegistros(sortedRegistros);
             } else {
                 showToast(registrosData.error || 'Error al cargar registros', 'error');
             }
@@ -62,8 +69,43 @@ export default function MisRegistros() {
                         mensaje: 'El periodo académico actual ha finalizado.'
                     });
                 }
-            }
 
+                // Store data for PDF report
+                if (perfilData.success) {
+                    const est = perfilData.estudiante;
+                    const dashEst = dashboardData.success ? dashboardData.estudiante : {};
+
+                    // Find accurate period details from MisPeriodos response
+                    let periodoParaPdf = {};
+                    if (periodosData.success && currentPeriodId) {
+                        periodoParaPdf = periodosData.periodos.find(p => p.id === currentPeriodId) || {};
+                    }
+
+                    // Extracts
+                    const periodoName = periodoParaPdf.nombre || dashEst.periodo || 'Periodo Actual';
+                    const periodoActivo = periodoParaPdf.activo ?? dashEst.periodo_info?.activo ?? true;
+                    // Prefer accumulated from DB, else calculate sum later
+                    const horasAcumuladas = periodoParaPdf.horas_acumuladas || periodoParaPdf.matricula?.horas_acumuladas;
+                    const horasRequeridas = periodoParaPdf.horas_totales_requeridas ||
+                        dashEst.periodo_info?.horas_requeridas ||
+                        dashEst.meta_horas ||
+                        '?';
+
+                    setPdfData({
+                        estudiante: {
+                            nombres: est.nombres,
+                            apellidos: est.apellidos,
+                            universidad: dashEst.universidad || est.universidad || 'No asignada'
+                        },
+                        periodo: {
+                            nombre: periodoName,
+                            activo: periodoActivo,
+                            horas_acumuladas: horasAcumuladas,
+                            horas_totales_requeridas: horasRequeridas
+                        }
+                    });
+                }
+            }
         } catch (err) {
             showToast(handleApiError(err), 'error');
         } finally {
@@ -101,6 +143,16 @@ export default function MisRegistros() {
         setShowDeleteModal(true);
     };
 
+    const handlePrint = () => {
+        if (registros.length === 0) {
+            showToast('No hay registros para imprimir', 'warning');
+            return;
+        }
+
+        generateRegistrosReport(registros, pdfData.estudiante, pdfData.periodo);
+        showToast('Reporte generado exitosamente', 'success');
+    };
+
     if (loading) return <MisRegistrosSkeleton />;
 
     const totalHoras = registros.reduce((sum, r) => sum + parseFloat(r.horas), 0);
@@ -114,17 +166,27 @@ export default function MisRegistros() {
                         Historial completo de tus horas de prácticas
                     </p>
                 </div>
-                <button
-                    onClick={() => setShowRegistroModal(true)}
-                    disabled={periodoEstado.finalizado}
-                    className={`px-4 py-2 rounded-xl transition-all flex items-center gap-2 font-medium ${periodoEstado.finalizado
-                        ? 'bg-gray-300 dark:bg-gray-600 text-gray-500 dark:text-gray-400 cursor-not-allowed'
-                        : 'bg-indigo-400 hover:bg-indigo-500 text-white shadow-lg shadow-indigo-100 dark:shadow-none'
-                        }`}
-                >
-                    <Plus className="w-5 h-5" />
-                    {periodoEstado.finalizado ? 'Finalizado' : 'Registrar Horas'}
-                </button>
+                <div className="flex gap-2">
+                    <button
+                        onClick={handlePrint}
+                        className="px-4 py-2 rounded-xl bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 transition flex items-center gap-2 font-medium shadow-sm"
+                        title="Imprimir reporte"
+                    >
+                        <Printer className="w-5 h-5" />
+                        <span className="hidden sm:inline">Imprimir</span>
+                    </button>
+                    <button
+                        onClick={() => setShowRegistroModal(true)}
+                        disabled={periodoEstado.finalizado}
+                        className={`px-4 py-2 rounded-xl transition-all flex items-center gap-2 font-medium ${periodoEstado.finalizado
+                            ? 'bg-gray-300 dark:bg-gray-600 text-gray-500 dark:text-gray-400 cursor-not-allowed'
+                            : 'bg-indigo-400 hover:bg-indigo-500 text-white shadow-lg shadow-indigo-100 dark:shadow-none'
+                            }`}
+                    >
+                        <Plus className="w-5 h-5" />
+                        {periodoEstado.finalizado ? 'Finalizado' : 'Registrar Horas'}
+                    </button>
+                </div>
             </div>
 
             {periodoEstado.finalizado && (
