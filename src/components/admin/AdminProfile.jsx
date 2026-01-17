@@ -14,7 +14,6 @@ export default function AdminProfile() {
     // Profile Form Data
     const [profileData, setProfileData] = useState({
         nombres: '',
-        nombres: '',
         email: ''
     });
 
@@ -28,7 +27,6 @@ export default function AdminProfile() {
     useEffect(() => {
         if (user) {
             setProfileData({
-                nombres: user.nombres || '',
                 nombres: user.nombres || '',
                 // Admin no tiene apellidos
                 email: user.email || ''
