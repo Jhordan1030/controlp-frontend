@@ -121,6 +121,7 @@ export default function AuditoriaManager() {
             Detalles: JSON.stringify(log.detalles || {})
         }));
         downloadCSV(dataToExport, 'auditoria_logs.csv');
+        adminAPI.registrarAuditoria('DESCARGA_REPORTE', { tipo: 'CSV', modulo: 'AUDITORIA' });
     };
 
     const handleExportPDF = () => {
@@ -137,6 +138,7 @@ export default function AuditoriaManager() {
             Recurso: log.registro_id
         }));
         downloadPDF(dataToExport, 'auditoria_logs.pdf', 'Reporte de Auditoría');
+        adminAPI.registrarAuditoria('DESCARGA_REPORTE', { tipo: 'PDF', modulo: 'AUDITORIA' });
     };
 
     const getActionIcon = (accion) => {

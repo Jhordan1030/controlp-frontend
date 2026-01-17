@@ -90,6 +90,7 @@ export default function PeriodosManager() {
             'Horas Requeridas': p.horas_totales_requeridas
         }));
         downloadCSV(dataToExport, 'periodos_academicos.csv');
+        adminAPI.registrarAuditoria('DESCARGA_REPORTE', { tipo: 'CSV', modulo: 'PERIODOS' });
     };
 
     const handleExportPDF = () => {
@@ -102,6 +103,7 @@ export default function PeriodosManager() {
             Estado: p.activo ? 'Activo' : 'Inactivo'
         }));
         downloadPDF(dataToExport, 'periodos_academicos.pdf', 'Reporte de Periodos Académicos');
+        adminAPI.registrarAuditoria('DESCARGA_REPORTE', { tipo: 'PDF', modulo: 'PERIODOS' });
     };
 
     const handleChange = (e) => {

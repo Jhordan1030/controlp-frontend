@@ -230,6 +230,15 @@ export const adminAPI = {
             passwordNuevo: nueva_password
         });
         return data;
+    },
+
+    registrarAuditoria: async (accion, detalles) => {
+        try {
+            await api.post('/admin/auditoria/log', { accion, detalles });
+        } catch (e) {
+            // No propagar error de auditoría
+            console.error('Error enviando auditoría:', e);
+        }
     }
 };
 
@@ -286,6 +295,14 @@ export const estudianteAPI = {
     eliminarRegistro: async (id) => {
         const { data } = await api.delete(`/estudiante/registros/${id}`);
         return data;
+    },
+
+    registrarAuditoria: async (accion, detalles) => {
+        try {
+            await api.post('/estudiante/auditoria/log', { accion, detalles });
+        } catch (e) {
+            console.error('Error enviando auditoría:', e);
+        }
     }
 };
 

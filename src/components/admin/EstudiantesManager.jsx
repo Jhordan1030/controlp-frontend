@@ -290,7 +290,36 @@ export default function EstudiantesManager() {
         }
     };
 
-    const handleSubmit = async (e) => {
+    const handleExport = () => {
+        if (!estudiantesFiltrados.length) return;
+        const dataToExport = estudiantesFiltrados.map(est => ({
+            ID: est.id,
+            Nombres: est.nombres,
+            Apellidos: est.apellidos,
+            Email: est.email,
+            Universidad: est.universidad?.nombre || universidades.find(u => u.id === est.universidad_id)?.nombre || 'N/A',
+            Periodo: est.periodo?.nombre || periodos.find(p => p.id === est.periodo_id)?.nombre || 'Sin Asignar',
+            Estado: est.activo ? 'Activo' : 'Inactivo'
+        }));
+        downloadCSV(dataToExport, 'estudiantes.csv');
+        adminAPI.registrarAuditoria('DESCARGA_REPORTE', { tipo: 'CSV', modulo: 'ESTUDIANTES' });
+    };
+
+    const handleExportPDF = () => {
+        if (!estudiantesFiltrados.length) return;
+        const dataToExport = estudiantesFiltrados.map(est => ({
+            Nombres: est.nombres,
+            Apellidos: est.apellidos,
+            Universidad: est.universidad?.nombre || universidades.find(u => u.id === est.universidad_id)?.nombre || 'N/A',
+            Periodo: est.periodo?.nombre || periodos.find(p => p.id === est.periodo_id)?.nombre || 'Sin Asignar',
+            Estado: est.activo ? 'Activo' : 'Inactivo'
+        }));
+        downloadPDF(dataToExport, 'estudiantes.pdf', 'Reporte de Estudiantes');
+        adminAPI.registrarAuditoria('DESCARGA_REPORTE', { tipo: 'PDF', modulo: 'ESTUDIANTES' });
+    };
+
+    const handleSubmit = async (e) => { // Existing handleSubmit starts here? Use search to finding entry point.
+
         e.preventDefault();
         await saveStudent(true);
     };
@@ -444,45 +473,7 @@ export default function EstudiantesManager() {
         }
     };
 
-    const handleExport = () => {
-        if (!estudiantes.length) return;
 
-        const headers = ['ID', 'Nombres', 'Apellidos', 'Email', 'Universidad', 'Periodo', 'Estado'];
-        const rows = estudiantes.map(est => [
-            est.id,
-            est.nombres,
-            est.apellidos,
-            est.email,
-            universidades.find(u => u.id === est.universidad_id)?.nombre || 'N/A',
-            periodos.find(p => p.id === est.periodo_id)?.nombre || 'N/A',
-            est.activo ? 'Activo' : 'Inactivo'
-        ]);
-
-        const csvContent = "data:text/csv;charset=utf-8,"
-            + [headers.join(','), ...rows.map(e => e.join(','))].join('\n');
-
-        const encodedUri = encodeURI(csvContent);
-        const link = document.createElement("a");
-        link.setAttribute("href", encodedUri);
-        link.setAttribute("download", "estudiantes.csv");
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-    };
-
-    const handleExportPDF = () => {
-        if (!estudiantes.length) return;
-        const dataToExport = estudiantes.map(est => ({
-            ID: est.id,
-            Nombres: est.nombres,
-            Apellidos: est.apellidos,
-            Email: est.email,
-            Universidad: universidades.find(u => u.id === est.universidad_id)?.nombre || 'N/A',
-            Periodo: periodos.find(p => p.id === est.periodo_id)?.nombre || 'N/A',
-            Estado: est.activo ? 'Activo' : 'Inactivo'
-        }));
-        downloadPDF(dataToExport, 'estudiantes.pdf', 'Reporte de Estudiantes');
-    };
 
     const handleImportClick = () => {
         fileInputRef.current.click();

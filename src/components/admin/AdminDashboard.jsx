@@ -72,6 +72,7 @@ export default function AdminDashboard({ setActiveTab }) {
         }));
 
         downloadCSV(dataToExport, `actividad_sistema_${new Date().toISOString().split('T')[0]}.csv`);
+        adminAPI.registrarAuditoria('DESCARGA_REPORTE', { tipo: 'CSV', modulo: 'DASHBOARD_ACTIVITY' });
     };
 
     if (loading) return <DashboardSkeleton />;

@@ -150,6 +150,7 @@ export default function MisRegistros() {
         }
 
         generateRegistrosReport(registros, pdfData.estudiante, pdfData.periodo);
+        estudianteAPI.registrarAuditoria('DESCARGA_REPORTE', { tipo: 'PDF', modulo: 'MIS_REGISTROS' });
         showToast('Reporte generado exitosamente', 'success');
     };
 

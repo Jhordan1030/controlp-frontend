@@ -98,6 +98,7 @@ export default function UniversidadesManager() {
             'Fecha Registro': new Date(uni.createdAt || Date.now()).toLocaleDateString() // Fallback date
         }));
         downloadCSV(dataToExport, 'universidades.csv');
+        adminAPI.registrarAuditoria('DESCARGA_REPORTE', { tipo: 'CSV', modulo: 'UNIVERSIDADES' });
     };
 
     const handleExportPDF = () => {
@@ -109,6 +110,7 @@ export default function UniversidadesManager() {
             'Fecha Registro': formatDateForDisplay(uni.createdAt || Date.now())
         }));
         downloadPDF(dataToExport, 'universidades.pdf', 'Reporte de Universidades');
+        adminAPI.registrarAuditoria('DESCARGA_REPORTE', { tipo: 'PDF', modulo: 'UNIVERSIDADES' });
     };
 
     const filteredUniversidades = universidades.filter(uni =>
