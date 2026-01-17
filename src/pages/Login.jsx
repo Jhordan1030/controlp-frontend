@@ -108,13 +108,7 @@ const Login = () => {
             <div className="w-full md:w-1/2 flex flex-col items-center justify-center p-6 md:p-12 relative bg-white dark:bg-slate-950 transition-colors duration-300">
 
                 {/* Botón Tema */}
-                <button
-                    onClick={toggleTheme}
-                    className="absolute top-6 left-6 p-3 rounded-full bg-slate-100 dark:bg-slate-900 text-slate-600 dark:text-amber-400 hover:bg-slate-200 dark:hover:bg-slate-800 transition-all duration-300 shadow-sm z-20"
-                    aria-label="Cambiar tema"
-                >
-                    {theme === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
-                </button>
+
 
                 <div className="w-full max-w-[420px] space-y-8 z-10">
 

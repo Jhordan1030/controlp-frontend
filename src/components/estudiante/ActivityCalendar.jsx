@@ -5,14 +5,14 @@ import Card from '../common/Card';
 export default function ActivityCalendar({ registros = [] }) {
     const [currentDate, setCurrentDate] = useState(new Date());
 
-    // Helper to get days in month
+    // Función auxiliar para obtener días en el mes
     const getDaysInMonth = (date) => {
         const year = date.getFullYear();
         const month = date.getMonth();
         return new Date(year, month + 1, 0).getDate();
     };
 
-    // Helper to get first day of month (0-6, Sun-Sat)
+    // Función auxiliar para obtener el primer día del mes (0-6, Dom-Sab)
     const getFirstDayOfMonth = (date) => {
         const year = date.getFullYear();
         const month = date.getMonth();
@@ -33,18 +33,18 @@ export default function ActivityCalendar({ registros = [] }) {
     ];
 
     const daysInMonth = getDaysInMonth(currentDate);
-    const firstDay = getFirstDayOfMonth(currentDate); // 0 (Sun) to 6 (Sat)
+    const firstDay = getFirstDayOfMonth(currentDate); // 0 (Dom) a 6 (Sab)
 
-    // Create array for grid
+    // Crear array para la cuadrícula
     const daysArray = [];
     for (let i = 0; i < firstDay; i++) {
-        daysArray.push(null); // Empty slots for previous month
+        daysArray.push(null); // Espacios vacíos para el mes anterior
     }
     for (let i = 1; i <= daysInMonth; i++) {
         daysArray.push(new Date(currentDate.getFullYear(), currentDate.getMonth(), i));
     }
 
-    // Process registros to specific dates map (YYYY-MM-DD -> total hours)
+    // Procesar registros a mapa de fechas (YYYY-MM-DD -> total horas)
     const activeDatesMap = {};
     registros.forEach(r => {
         const key = r.fecha.split('T')[0];
@@ -61,9 +61,9 @@ export default function ActivityCalendar({ registros = [] }) {
 
     const getColorClass = (hours) => {
         if (hours === 0) return '';
-        if (hours >= 4) return 'bg-emerald-300 text-emerald-900 dark:bg-emerald-700 dark:text-emerald-100 font-bold'; // Pastel Green
-        if (hours >= 2) return 'bg-amber-200 text-amber-900 dark:bg-amber-700 dark:text-amber-100 font-bold'; // Pastel Yellow/Amber
-        return 'bg-rose-200 text-rose-900 dark:bg-rose-700 dark:text-rose-100 font-bold'; // Pastel Red/Rose
+        if (hours >= 4) return 'bg-emerald-300 text-emerald-900 dark:bg-emerald-700 dark:text-emerald-100 font-bold'; // Verde Pastel
+        if (hours >= 2) return 'bg-amber-200 text-amber-900 dark:bg-amber-700 dark:text-amber-100 font-bold'; // Amarillo/Ambar Pastel
+        return 'bg-rose-200 text-rose-900 dark:bg-rose-700 dark:text-rose-100 font-bold'; // Rojo/Rosa Pastel
     };
 
     return (
@@ -76,16 +76,16 @@ export default function ActivityCalendar({ registros = [] }) {
                 <div className="flex items-center gap-2">
                     <button
                         onClick={prevMonth}
-                        className="p-1 hover:bg-gray-100 rounded-full transition text-gray-600"
+                        className="p-1 hover:bg-gray-100 rounded-full transition text-gray-600 dark:text-gray-400 dark:hover:bg-gray-700"
                     >
                         <ChevronLeft className="w-5 h-5" />
                     </button>
-                    <span className="text-sm font-semibold min-w-[100px] text-center">
+                    <span className="text-sm font-semibold min-w-[100px] text-center text-gray-900 dark:text-white">
                         {monthNames[currentDate.getMonth()]} {currentDate.getFullYear()}
                     </span>
                     <button
                         onClick={nextMonth}
-                        className="p-1 hover:bg-gray-100 rounded-full transition text-gray-600"
+                        className="p-1 hover:bg-gray-100 rounded-full transition text-gray-600 dark:text-gray-400 dark:hover:bg-gray-700"
                     >
                         <ChevronRight className="w-5 h-5" />
                     </button>
