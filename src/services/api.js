@@ -203,6 +203,11 @@ export const adminAPI = {
         return data;
     },
 
+    matricularMasivo: async (periodoId, universidadId) => {
+        const { data } = await api.post(`/admin/periodos/${periodoId}/matricula-masiva`, { universidad_id: universidadId });
+        return data;
+    },
+
     toggleEstudiante: async (id) => {
         const { data } = await api.put(`/admin/estudiantes/${id}/toggle`);
         return data;

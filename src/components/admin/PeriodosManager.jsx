@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Calendar, Edit2, Eye, User, GraduationCap, Trash2, Filter, Search, Download, FileText } from 'lucide-react';
+import { Plus, Calendar, Edit2, Eye, User, GraduationCap, Trash2, Filter, Search, Download, FileText, Users } from 'lucide-react';
 import Card from '../common/Card';
 import Modal from '../common/Modal';
 import LoadingSpinner from '../common/LoadingSpinner';
@@ -95,7 +95,6 @@ export default function PeriodosManager() {
     const handleExportPDF = () => {
         if (!periodos.length) return;
         const dataToExport = periodos.map(p => ({
-            ID: p.id,
             Nombre: p.nombre,
             Universidad: p.universidad?.nombre || universidades.find(u => u.id === p.universidad_id)?.nombre || 'N/A',
             'Fecha Inicio': formatDateShort(p.fecha_inicio),
@@ -228,6 +227,42 @@ export default function PeriodosManager() {
         } finally {
             setLoading(false);
         }
+    };
+
+    const handleMatriculaMasiva = async () => {
+        if (candidatos.length === 0) {
+            showToast('No hay estudiantes para matricular', 'warning');
+            return;
+        }
+
+        const periodoActual = periodos.find(p => p.id === currentId);
+        if (!periodoActual) return;
+
+        setConfirmation({
+            isOpen: true,
+            title: 'Confirmar Matriculación Masiva',
+            message: `¿Estás seguro de que deseas matricular a TODOS los ${candidatos.length} estudiantes disponibles de ${universidades.find(u => u.id === periodoActual.universidad_id)?.nombre} en el periodo ${periodoActual.nombre}? Esta acción no se puede deshacer fácilmente.`,
+            onConfirm: async () => {
+                try {
+                    setLoading(true);
+                    // Usamos el ID de universidad del primer candidato o del periodo logic
+                    const uniId = periodoActual.universidad_id;
+                    const data = await adminAPI.matricularMasivo(currentId, uniId);
+
+                    if (data.success) {
+                        showToast(`Se han matriculado ${data.count} estudiantes exitosamente`, 'success');
+                        setShowInscripcionModal(false);
+                        handleVerEstudiantes(periodoActual);
+                    } else {
+                        showToast(data.error || 'Error en matriculación masiva', 'error');
+                    }
+                } catch (err) {
+                    showToast(handleApiError(err), 'error');
+                } finally {
+                    setLoading(false);
+                }
+            }
+        });
     };
 
     const toggleStudentSelection = (id) => {
@@ -770,21 +805,33 @@ export default function PeriodosManager() {
                         )}
                     </div>
 
-                    <div className="flex justify-end gap-3 pt-4">
-                        <button
-                            type="button"
-                            onClick={() => setShowInscripcionModal(false)}
-                            className="btn-secondary"
-                        >
-                            Cancelar
-                        </button>
-                        <button
-                            type="submit"
-                            className="btn-primary"
-                            disabled={selectedStudentIds.length === 0}
-                        >
-                            Inscribir
-                        </button>
+                    <div className="flex justify-between items-center pt-4 border-t border-gray-100 dark:border-gray-700 mt-4">
+                        {candidatos.length > 0 && (
+                            <button
+                                type="button"
+                                onClick={handleMatriculaMasiva}
+                                className="text-blue-600 hover:text-blue-800 text-sm font-medium hover:underline flex items-center gap-1"
+                            >
+                                <Users className="w-4 h-4" />
+                                Matricular Todos ({candidatos.length})
+                            </button>
+                        )}
+                        <div className="flex gap-3">
+                            <button
+                                type="button"
+                                onClick={() => setShowInscripcionModal(false)}
+                                className="btn-secondary"
+                            >
+                                Cancelar
+                            </button>
+                            <button
+                                type="submit"
+                                className="btn-primary"
+                                disabled={selectedStudentIds.length === 0}
+                            >
+                                Inscribir Seleccionados
+                            </button>
+                        </div>
                     </div>
                 </form>
             </Modal>
