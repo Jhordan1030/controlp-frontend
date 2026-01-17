@@ -63,6 +63,9 @@ const Login = () => {
             if (err.response && err.response.status === 403) {
                 // No logueamos error en consola para este caso controlado
                 setError(err.response.data.error || 'Tu cuenta ha sido desactivada. Comunícate con administración.');
+            } else if (err.response && err.response.status === 429) {
+                // Manejo error 429 (Rate Limiting)
+                setError('Demasiados intentos incorrectos. Por favor, espera unos minutos antes de intentar de nuevo.');
             } else {
                 console.error(err);
                 setError('Error al conectar con el servidor. Inténtalo más tarde.');
@@ -199,7 +202,7 @@ const Login = () => {
                     </form>
 
                     <p className="text-center text-slate-400 dark:text-slate-600 text-xs mt-8">
-                        © {new Date().getFullYear()} Control de Prácticas - v2.0
+                        © {new Date().getFullYear()} Control de Prácticas - v2.1.0
                     </p>
                 </div>
             </div>
@@ -207,35 +210,44 @@ const Login = () => {
             {/* --- LADO DERECHO (BRANDING) --- */}
             <div className="hidden md:flex md:w-1/2 bg-slate-900 relative flex-col justify-between p-12 lg:p-16 overflow-hidden">
 
-                {/* Fondo animado sutil */}
-                <div className="absolute inset-0 bg-gradient-to-bl from-slate-900 via-blue-950 to-slate-900 z-0" />
-                <div className="absolute top-[-20%] right-[-20%] w-[500px] h-[500px] bg-blue-600/20 rounded-full blur-[120px] animate-pulse" />
-                <div className="absolute bottom-[-20%] left-[-20%] w-[500px] h-[500px] bg-indigo-600/20 rounded-full blur-[120px] animate-pulse delay-700" />
+                {/* Imagen de Fondo */}
+                <div className="absolute inset-0 z-0">
+                    <img
+                        src="https://images.unsplash.com/photo-1497215728101-856f4ea42174?q=80&w=2070&auto=format&fit=crop"
+                        alt="Background"
+                        className="w-full h-full object-cover opacity-40 mix-blend-overlay"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-slate-900/80 to-blue-900/30" />
+                </div>
+
+                {/* Fondo animado sutil (mantenemos sutilmente) */}
+                <div className="absolute top-[-20%] right-[-20%] w-[500px] h-[500px] bg-blue-600/20 rounded-full blur-[120px] animate-pulse pointer-events-none" />
+                <div className="absolute bottom-[-20%] left-[-20%] w-[500px] h-[500px] bg-indigo-600/20 rounded-full blur-[120px] animate-pulse delay-700 pointer-events-none" />
 
                 {/* Contenido */}
                 <div className="relative z-10 mt-10 text-right">
-                    <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/10 border border-blue-400/20 backdrop-blur-md mb-6 ml-auto">
+                    <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/20 border border-blue-400/20 backdrop-blur-md mb-6 ml-auto shadow-lg">
                         <span className="relative flex h-2 w-2">
                             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
                             <span className="relative inline-flex rounded-full h-2 w-2 bg-blue-500"></span>
                         </span>
-                        <span className="text-blue-200 text-xs font-bold tracking-widest uppercase">Sistema V 2.0</span>
+                        <span className="text-blue-100 text-xs font-bold tracking-widest uppercase text-shadow">Sistema V 2.1.0</span>
                     </div>
 
-                    <h1 className="text-5xl lg:text-6xl font-bold text-white leading-tight tracking-tight">
+                    <h1 className="text-5xl lg:text-6xl font-bold text-white leading-tight tracking-tight drop-shadow-lg">
                         Gestión de <br />
-                        <span className="text-transparent bg-clip-text bg-gradient-to-l from-blue-400 to-indigo-400">
+                        <span className="text-transparent bg-clip-text bg-gradient-to-l from-blue-200 to-indigo-200">
                             Prácticas
                         </span>
                     </h1>
 
-                    <p className="mt-6 text-slate-400 text-lg max-w-md ml-auto leading-relaxed">
+                    <p className="mt-6 text-slate-200 text-lg max-w-md ml-auto leading-relaxed drop-shadow-md">
                         Plataforma integral para el seguimiento de periodos, registros de horas y gestión universitaria.
                     </p>
                 </div>
 
                 {/* Footer del lado derecho */}
-                <div className="relative z-10 text-slate-500 text-sm text-right">
+                <div className="relative z-10 text-slate-300 text-sm text-right font-medium">
                     <p>Tecnología segura y eficiente.</p>
                 </div>
             </div>

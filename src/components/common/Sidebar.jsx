@@ -90,7 +90,7 @@ export default function Sidebar({ activeTab, setActiveTab, isOpen, onClose }) {
                     <div className="p-4 border-t border-gray-200 dark:border-gray-700">
                         <div className="text-xs text-gray-500 dark:text-gray-400 text-center">
                             <p>Sistema de Control de Prácticas</p>
-                            <p className="mt-1">v2.0.0 - {new Date().getFullYear()}</p>
+                            <p className="mt-1">v2.1.0 - {new Date().getFullYear()}</p>
                         </div>
                     </div>
                 </div>
