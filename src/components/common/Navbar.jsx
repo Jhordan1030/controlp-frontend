@@ -1,12 +1,13 @@
 // ==================== src/components/common/Navbar.jsx ====================
 import React from 'react';
-import { LogOut, User, Menu } from 'lucide-react';
+import { LogOut, User, Menu, Sun, Moon } from 'lucide-react';
 
 import { useAuth } from '../../context/AuthContext';
-import ThemeToggle from './ThemeToggle';
+import { useTheme } from '../../context/ThemeContext';
 
 export default function Navbar({ onMenuClick, onProfileClick }) {
     const { user, logout } = useAuth();
+    const { theme, toggleTheme } = useTheme();
     const [isDropdownOpen, setIsDropdownOpen] = React.useState(false);
 
     return (
@@ -39,7 +40,6 @@ export default function Navbar({ onMenuClick, onProfileClick }) {
 
                     {/* Right side */}
                     <div className="flex items-center gap-2 sm:gap-4">
-                        <ThemeToggle />
 
                         {/* User Dropdown */}
                         <div className="relative">
@@ -78,6 +78,25 @@ export default function Navbar({ onMenuClick, onProfileClick }) {
                                         >
                                             <User className="w-4 h-4" />
                                             Mi Perfil
+                                        </button>
+
+                                        {/* Theme Toggle in Dropdown */}
+                                        <button
+                                            onClick={(e) => {
+                                                e.stopPropagation(); // Evitar cierre del dropdown si se desea, aunque el usuario suele querer ver el cambio
+                                                toggleTheme();
+                                            }}
+                                            className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 flex items-center justify-between"
+                                        >
+                                            <div className="flex items-center gap-2">
+                                                {theme === 'dark' ? <Moon className="w-4 h-4" /> : <Sun className="w-4 h-4" />}
+                                                <span>Tema {theme === 'dark' ? 'Oscuro' : 'Claro'}</span>
+                                            </div>
+
+                                            {/* Switch UI */}
+                                            <div className={`w-10 h-5 flex items-center bg-gray-300 dark:bg-indigo-600 rounded-full p-1 duration-300 ease-in-out`}>
+                                                <div className={`bg-white w-4 h-4 rounded-full shadow-md transform duration-300 ease-in-out ${theme === 'dark' ? 'translate-x-4' : ''}`}></div>
+                                            </div>
                                         </button>
 
                                         <div className="border-t border-gray-100 dark:border-gray-700 my-1"></div>
