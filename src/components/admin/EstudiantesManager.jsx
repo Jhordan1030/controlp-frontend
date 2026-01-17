@@ -524,6 +524,12 @@ export default function EstudiantesManager() {
 
     // if (loading) return <LoadingSpinner />;
 
+    // Filtros dinámicos
+    const filteredPeriodos = useMemo(() => {
+        if (!filterUniversidad) return periodos;
+        return periodos.filter(p => p.universidad_id == filterUniversidad);
+    }, [periodos, filterUniversidad]);
+
     return (
         <div className="space-y-6">
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
@@ -598,6 +604,7 @@ export default function EstudiantesManager() {
                             value={filterUniversidad}
                             onChange={(e) => {
                                 setFilterUniversidad(e.target.value);
+                                setFilterPeriodo(''); // Resetear periodo al cambiar universidad
                                 setCurrentPage(1);
                             }}
                             className="input-field min-w-[150px] dark:bg-gray-700 dark:border-gray-600 dark:text-white"
@@ -616,7 +623,7 @@ export default function EstudiantesManager() {
                             className="input-field min-w-[150px] dark:bg-gray-700 dark:border-gray-600 dark:text-white"
                         >
                             <option value="">Todos los Periodos</option>
-                            {periodos.map(per => (
+                            {filteredPeriodos.map(per => (
                                 <option key={per.id} value={per.id}>{per.nombre}</option>
                             ))}
                         </select>
