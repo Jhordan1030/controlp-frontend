@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-
-import { Plus, Users, Search, Filter, Download, Upload, MoreVertical, Edit, Trash2, Eye, EyeOff, X, Check, Lock, FileText, Key, Copy } from 'lucide-react';
+import { Plus, Users, Search, Filter, Download, Upload, MoreVertical, Edit, Trash2, Eye, EyeOff, X, Check, Lock, FileText, Key, Copy, ArrowUp, ArrowDown } from 'lucide-react';
 import { formatDateForDisplay } from '../../utils/dateUtils';
 import Card from '../common/Card';
 import Modal from '../common/Modal';
@@ -27,12 +26,16 @@ export default function EstudiantesManager() {
     const [filterPeriodo, setFilterPeriodo] = useState('');
     const [filterEstado, setFilterEstado] = useState('all'); // all, active, inactive
 
+    // Sorting
+    const [sortConfig, setSortConfig] = useState({ key: 'nombres', direction: 'asc' });
+
     // Pagination State
     const [currentPage, setCurrentPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
     const [totalStudents, setTotalStudents] = useState(0);
     const [limit] = useState(20);
 
+    // ... (rest of state code omitted for brevity until we reach handleSort) ...
     // Estado para edición
     const [isEditing, setIsEditing] = useState(false);
     const [currentId, setCurrentId] = useState(null);
@@ -96,10 +99,8 @@ export default function EstudiantesManager() {
             ]);
             if (universidadesData.success) setUniversidades(universidadesData.universidades);
             if (periodosData.success) setPeriodos(periodosData.periodos);
-            if (periodosData.success) setPeriodos(periodosData.periodos);
         } catch (err) {
             console.error("Error loading auxiliary data", err);
-            // No alert needed here as it's background data
         }
     };
 
@@ -114,7 +115,7 @@ export default function EstudiantesManager() {
                 busqueda: debouncedSearch
             };
 
-            // Add optional filters if backend supports them (sending them just in case)
+            // Add optional filters
             if (filterUniversidad) params.universidad_id = filterUniversidad;
             if (filterPeriodo) params.periodo_id = filterPeriodo;
             if (filterEstado !== 'all') params.activo = filterEstado === 'active' ? 'true' : 'false';
@@ -123,8 +124,6 @@ export default function EstudiantesManager() {
 
             if (data.success) {
                 setEstudiantes(data.estudiantes || []);
-                // Update pagination info from backend response
-                // Assuming backend sends: { estudiantes: [], count: 100, totalPages: 5, currentPage: 1 }
                 setTotalStudents(data.count || 0);
                 setTotalPages(data.totalPages || 1);
             } else {
@@ -137,10 +136,45 @@ export default function EstudiantesManager() {
         }
     };
 
-    // No client-side filtering anymore within this memo
-    // But we keep this variable name to minimize refactoring impact on render
-    const estudiantesFiltrados = estudiantes;
+    // Sorting Logic
+    const handleSort = (key) => {
+        let direction = 'asc';
+        if (sortConfig.key === key && sortConfig.direction === 'asc') {
+            direction = 'desc';
+        }
+        setSortConfig({ key, direction });
+    };
 
+    const estudiantesFiltrados = useMemo(() => {
+        let sorted = [...estudiantes];
+        if (sortConfig.key) {
+            sorted.sort((a, b) => {
+                let aValue = '';
+                let bValue = '';
+
+                if (sortConfig.key === 'universidad_id') {
+                    // Sort by University Name
+                    aValue = universidades.find(u => u.id === a.universidad_id)?.nombre || '';
+                    bValue = universidades.find(u => u.id === b.universidad_id)?.nombre || '';
+                } else if (sortConfig.key === 'activo') {
+                    // Sort by Status (Active/Inactive)
+                    aValue = a.activo ? '1' : '0';
+                    bValue = b.activo ? '1' : '0';
+                } else {
+                    // Default (names, etc)
+                    aValue = a[sortConfig.key] ? a[sortConfig.key].toString() : '';
+                    bValue = b[sortConfig.key] ? b[sortConfig.key].toString() : '';
+                }
+
+                if (sortConfig.direction === 'asc') {
+                    return aValue.localeCompare(bValue, 'es', { sensitivity: 'base' });
+                } else {
+                    return bValue.localeCompare(aValue, 'es', { sensitivity: 'base' });
+                }
+            });
+        }
+        return sorted;
+    }, [estudiantes, sortConfig, universidades]);
 
     const handleChange = (e) => {
         const value = e.target.type === 'checkbox' ? e.target.checked : e.target.value;
@@ -149,6 +183,7 @@ export default function EstudiantesManager() {
             [e.target.name]: value
         });
     };
+
 
     const resetForm = () => {
         setFormData({
@@ -671,9 +706,54 @@ export default function EstudiantesManager() {
                         <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
                             <thead className="bg-gray-50 dark:bg-gray-700/50">
                                 <tr>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Estudiante</th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Universidad / Periodo</th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Estado</th>
+                                    <th
+                                        className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors group select-none"
+                                        onClick={() => handleSort('nombres')}
+                                    >
+                                        <div className="flex items-center gap-2">
+                                            Estudiante
+                                            {sortConfig.key === 'nombres' && (
+                                                sortConfig.direction === 'asc' ?
+                                                    <ArrowUp className="w-4 h-4 text-indigo-500" /> :
+                                                    <ArrowDown className="w-4 h-4 text-indigo-500" />
+                                            )}
+                                            {sortConfig.key !== 'nombres' && (
+                                                <ArrowUp className="w-4 h-4 text-gray-300 opacity-0 group-hover:opacity-100 transition-opacity" />
+                                            )}
+                                        </div>
+                                    </th>
+                                    <th
+                                        className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors group select-none"
+                                        onClick={() => handleSort('universidad_id')}
+                                    >
+                                        <div className="flex items-center gap-2">
+                                            Universidad / Periodo
+                                            {sortConfig.key === 'universidad_id' && (
+                                                sortConfig.direction === 'asc' ?
+                                                    <ArrowUp className="w-4 h-4 text-indigo-500" /> :
+                                                    <ArrowDown className="w-4 h-4 text-indigo-500" />
+                                            )}
+                                            {sortConfig.key !== 'universidad_id' && (
+                                                <ArrowUp className="w-4 h-4 text-gray-300 opacity-0 group-hover:opacity-100 transition-opacity" />
+                                            )}
+                                        </div>
+                                    </th>
+                                    <th
+                                        className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors group select-none"
+                                        onClick={() => handleSort('activo')}
+                                    >
+                                        <div className="flex items-center gap-2">
+                                            Estado
+                                            {sortConfig.key === 'activo' && (
+                                                sortConfig.direction === 'asc' ?
+                                                    <ArrowUp className="w-4 h-4 text-indigo-500" /> :
+                                                    <ArrowDown className="w-4 h-4 text-indigo-500" />
+                                            )}
+                                            {sortConfig.key !== 'activo' && (
+                                                <ArrowUp className="w-4 h-4 text-gray-300 opacity-0 group-hover:opacity-100 transition-opacity" />
+                                            )}
+                                        </div>
+                                    </th>
                                     <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Acciones</th>
                                 </tr>
                             </thead>
