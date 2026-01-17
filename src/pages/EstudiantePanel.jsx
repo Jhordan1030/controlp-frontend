@@ -17,7 +17,7 @@ export default function EstudiantePanel() {
     const renderContent = () => {
         switch (activeTab) {
             case 'dashboard':
-                return <EstudianteDashboard />;
+                return <EstudianteDashboard onNavigate={setActiveTab} />;
             case 'mis-periodos':
                 return <MisPeriodos />;
             case 'registros':

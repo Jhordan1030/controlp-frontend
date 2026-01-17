@@ -10,7 +10,7 @@ import ActivityCalendar from './ActivityCalendar';
 import { estudianteAPI } from '../../services/api';
 import { handleApiError, formatDateShort } from '../../utils/helpers';
 
-export default function EstudianteDashboard() {
+export default function EstudianteDashboard({ onNavigate }) {
     const { showToast } = useToast();
     const [dashboardData, setDashboardData] = useState(null);
     const [allRegistros, setAllRegistros] = useState([]);
@@ -295,40 +295,67 @@ export default function EstudianteDashboard() {
                 {/* Left Column: Recent Activity */}
                 <div className="lg:col-span-2 space-y-6">
                     <div className="flex items-center justify-between">
-                        <h2 className="text-lg font-bold text-gray-900 dark:text-white">Actividad Reciente</h2>
+                        <h2 className="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                            <Clock className="w-5 h-5 text-indigo-500" />
+                            Actividad Reciente
+                        </h2>
+                        <button
+                            className="text-sm font-medium text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 transition-colors flex items-center gap-1"
+                            onClick={() => onNavigate && onNavigate('registros')}
+                        >
+                            Ver historial completo
+                        </button>
                     </div>
 
-                    <Card className="overflow-hidden bg-white dark:bg-gray-800 border-gray-100 dark:border-gray-700">
+                    <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden transition-colors duration-200">
                         {ultimosRegistros && ultimosRegistros.length > 0 ? (
-                            <div className="divide-y divide-gray-100 dark:divide-gray-700">
+                            <div className="divide-y divide-gray-50 dark:divide-gray-700/50">
                                 {ultimosRegistros.map((registro) => (
-                                    <div key={registro.id} className="p-4 hover:bg-gray-50 dark:hover:bg-gray-700 transition flex items-center justify-between group">
-                                        <div className="flex items-start gap-4">
-                                            <div className="p-2 bg-violet-50 dark:bg-violet-900/20 text-violet-500 dark:text-violet-400 rounded-lg group-hover:bg-violet-100 dark:group-hover:bg-violet-900/40 transition">
-                                                <Clock className="w-5 h-5" />
+                                    <div
+                                        key={registro.id}
+                                        className="p-5 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition duration-200 flex items-center justify-between group cursor-default"
+                                    >
+                                        <div className="flex items-center gap-4">
+                                            {/* Icon Box */}
+                                            <div className="w-12 h-12 rounded-xl bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 flex items-center justify-center group-hover:scale-110 group-hover:bg-indigo-100 dark:group-hover:bg-indigo-900/30 transition-all duration-300">
+                                                <CheckCircle className="w-6 h-6" />
                                             </div>
+
+                                            {/* Content */}
                                             <div>
-                                                <p className="text-sm font-medium text-gray-900 dark:text-gray-100">{registro.descripcion}</p>
-                                                <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                                                <h4 className="font-bold text-gray-900 dark:text-white text-base mb-0.5 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
                                                     {formatDateShort(registro.fecha)}
+                                                </h4>
+                                                <p className="text-sm text-gray-500 dark:text-gray-400 line-clamp-1">
+                                                    {registro.descripcion || 'Sin descripción'}
                                                 </p>
                                             </div>
                                         </div>
-                                        <span className="px-3 py-1 bg-gray-50 dark:bg-gray-700 text-gray-600 dark:text-gray-300 rounded-full text-xs font-bold border border-gray-100 dark:border-gray-600">
-                                            {registro.horas}h
-                                        </span>
+
+                                        {/* Hours Badge */}
+                                        <div className="flex items-center gap-4">
+                                            <div className="text-right">
+                                                <span className="block text-xl font-bold text-gray-900 dark:text-white">
+                                                    {registro.horas}h
+                                                </span>
+                                            </div>
+                                            <div className="w-1.5 h-10 bg-gray-100 dark:bg-gray-700 rounded-full group-hover:bg-indigo-500 transition-colors duration-300"></div>
+                                        </div>
                                     </div>
                                 ))}
                             </div>
                         ) : (
-                            <div className="text-center py-8">
-                                <div className="bg-gray-50 dark:bg-gray-700 p-3 rounded-full inline-flex mb-3">
-                                    <AlertCircle className="w-6 h-6 text-gray-400 dark:text-gray-300" />
+                            <div className="text-center py-12 px-6">
+                                <div className="w-16 h-16 bg-gray-50 dark:bg-gray-700/50 rounded-full flex items-center justify-center mx-auto mb-4">
+                                    <Clock className="w-8 h-8 text-gray-400 dark:text-gray-500" />
                                 </div>
-                                <p className="text-gray-500 dark:text-gray-400 text-sm">No hay registros recientes</p>
+                                <h3 className="text-gray-900 dark:text-white font-medium mb-1">Sin actividad reciente</h3>
+                                <p className="text-gray-500 dark:text-gray-400 text-sm">
+                                    Cuando registres tus primeras horas, aparecerán aquí.
+                                </p>
                             </div>
                         )}
-                    </Card>
+                    </div>
                 </div>
 
                 {/* Right Column: Calendar */}
