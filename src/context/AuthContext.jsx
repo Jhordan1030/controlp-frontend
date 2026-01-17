@@ -1,6 +1,7 @@
 // ==================== src/context/AuthContext.jsx ====================
 import React, { createContext, useState, useContext, useEffect } from 'react';
 import axios from 'axios';
+import { clearCache } from '../services/api';
 import { isTokenExpired } from '../utils/helpers';
 
 const AuthContext = createContext(null);
@@ -66,6 +67,9 @@ export const AuthProvider = ({ children }) => {
 
         // Remover el header de autorización de axios
         delete axios.defaults.headers.common['Authorization'];
+
+        // Limpiar cache de la API para evitar datos cruzados
+        clearCache();
     };
 
     const updateUser = (userData) => {

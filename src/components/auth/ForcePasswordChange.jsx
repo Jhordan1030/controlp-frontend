@@ -84,7 +84,6 @@ export default function ForcePasswordChange({ token, user, initialPassword, onSu
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-gray-900/80 backdrop-blur-sm animate-fadeIn">
             <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-md overflow-hidden animate-slide-up">
-                {/* Header */}
                 <div className="bg-indigo-600 p-6 text-center">
                     <div className="mx-auto w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center mb-3 backdrop-blur-sm">
                         <Lock className="w-6 h-6 text-white" />
@@ -98,7 +97,7 @@ export default function ForcePasswordChange({ token, user, initialPassword, onSu
                 </div>
 
                 <div className="p-8">
-                    {/* User Info */}
+                    {/* Información del Usuario */}
                     <div className="mb-6 flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg border border-gray-100 dark:border-gray-700">
                         <div className="w-10 h-10 bg-indigo-100 dark:bg-indigo-900/30 rounded-full flex items-center justify-center font-bold text-indigo-700 dark:text-indigo-400">
                             {user.nombres.charAt(0)}

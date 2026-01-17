@@ -1,11 +1,13 @@
 // ==================== src/components/common/Sidebar.jsx ====================
 import React from 'react';
-import { Home, Users, Building2, Calendar, FileText, X, Shield, BookOpen, Award, User } from 'lucide-react';
+import { Home, Users, Building2, Calendar, FileText, X, Shield, BookOpen } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 
 export default function Sidebar({ activeTab, setActiveTab, isOpen, onClose }) {
+    // Obtener información del usuario para verificar roles
     const { isAdmin } = useAuth();
 
+    // Menú para Administradores: Acceso a gestión completa
     const adminMenuItems = [
         { id: 'dashboard', label: 'Dashboard', icon: Home },
         { id: 'universidades', label: 'Universidades', icon: Building2 },
@@ -14,21 +16,19 @@ export default function Sidebar({ activeTab, setActiveTab, isOpen, onClose }) {
         { id: 'auditoria', label: 'Auditoría', icon: Shield }
     ];
 
+    // Menú para Estudiantes: Acceso a información personal y registros
     const estudianteMenuItems = [
         { id: 'dashboard', label: 'Dashboard', icon: Home },
         { id: 'mis-periodos', label: 'Mis Periodos', icon: BookOpen },
         { id: 'registros', label: 'Mis Registros', icon: FileText },
-        { id: 'certificados', label: 'Certificados', icon: Award },
-
-
-
     ];
 
+    // Seleccionar el menú correcto basado en el rol del usuario
     const menuItems = isAdmin ? adminMenuItems : estudianteMenuItems;
 
     return (
         <>
-            {/* Mobile backdrop */}
+            {/* Fondo oscuro para dispositivos móviles (backdrop) */}
             {isOpen && (
                 <div
                     className="fixed inset-0 bg-black bg-opacity-50 z-[60] lg:hidden"
@@ -36,7 +36,7 @@ export default function Sidebar({ activeTab, setActiveTab, isOpen, onClose }) {
                 ></div>
             )}
 
-            {/* Sidebar */}
+            {/* Contenedor de la Barra Lateral */}
             <aside
                 className={`
           fixed top-0 left-0 h-full z-[70] lg:z-30
@@ -47,7 +47,7 @@ export default function Sidebar({ activeTab, setActiveTab, isOpen, onClose }) {
         `}
             >
                 <div className="h-full flex flex-col overflow-y-auto">
-                    {/* Close button (mobile) */}
+                    {/* Botón de cierre (solo visible en móvil) */}
                     <div className="lg:hidden flex justify-end p-4">
                         <button
                             onClick={onClose}
@@ -57,7 +57,7 @@ export default function Sidebar({ activeTab, setActiveTab, isOpen, onClose }) {
                         </button>
                     </div>
 
-                    {/* Menu items */}
+                    {/* Navegación y Elementos del Menú */}
                     <nav className="flex-1 px-4 py-6 space-y-2">
                         {menuItems.map((item) => {
                             const Icon = item.icon;
@@ -86,11 +86,11 @@ export default function Sidebar({ activeTab, setActiveTab, isOpen, onClose }) {
                         })}
                     </nav>
 
-                    {/* Footer */}
+                    {/* Pie de página de la barra lateral */}
                     <div className="p-4 border-t border-gray-200 dark:border-gray-700">
                         <div className="text-xs text-gray-500 dark:text-gray-400 text-center">
                             <p>Sistema de Control de Prácticas</p>
-                            <p className="mt-1">v1.0.0</p>
+                            <p className="mt-1">v2.0.0 - {new Date().getFullYear()}</p>
                         </div>
                     </div>
                 </div>

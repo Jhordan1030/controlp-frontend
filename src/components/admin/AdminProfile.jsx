@@ -11,13 +11,13 @@ export default function AdminProfile() {
     const [loading, setLoading] = useState(false);
     const { showToast } = useToast();
 
-    // Profile Form Data
+    // Datos del formulario de perfil
     const [profileData, setProfileData] = useState({
         nombres: '',
         email: ''
     });
 
-    // Password Form Data
+    // Datos del formulario de contraseña
     const [passwordData, setPasswordData] = useState({
         password_actual: '',
         nueva_password: '',
@@ -122,7 +122,7 @@ export default function AdminProfile() {
                 </p>
             </div>
 
-            {/* Tabs */}
+            {/* Pestañas de Navegación */}
             <div className="flex space-x-1 bg-white dark:bg-gray-800 p-1 rounded-xl border border-gray-200 dark:border-gray-700 w-fit">
                 <button
                     onClick={() => setActiveTab('general')}
@@ -146,7 +146,7 @@ export default function AdminProfile() {
                 </button>
             </div>
 
-            {/* Content Area */}
+            {/* Área de Contenido */}
             <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
 
 

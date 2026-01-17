@@ -44,7 +44,8 @@ const cache = new Map();
 const CACHE_TTL = 30000; // 30 segundos de cache por defecto
 
 const getCacheKey = (url, config) => {
-    return `${url}?${JSON.stringify(config?.params || {})}`;
+    const token = localStorage.getItem('token') || '';
+    return `${token}||${url}?${JSON.stringify(config?.params || {})}`;
 };
 
 // Decorador para api.get con caching
@@ -75,6 +76,13 @@ api.get = async (url, config = {}) => {
 };
 
 // Invalidar cache en mutaciones (POST, PUT, DELETE)
+export const clearCache = () => {
+    if (cache.size > 0) {
+        console.log('[CACHE] Cleared manually');
+        cache.clear();
+    }
+};
+
 const invalidateCache = () => {
     if (cache.size > 0) {
         console.log('[CACHE] Invalidated');

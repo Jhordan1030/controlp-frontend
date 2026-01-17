@@ -881,24 +881,7 @@ export default function EstudiantesManager() {
                         </select>
                     </div>
 
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                            Periodo
-                        </label>
-                        <select
-                            name="periodo_id"
-                            value={formData.periodo_id}
-                            onChange={handleChange}
-                            className="input-field dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                        >
-                            <option value="">Sin asignar</option>
-                            {periodos.map((periodo) => (
-                                <option key={periodo.id} value={periodo.id}>
-                                    {periodo.nombre} - {periodo.universidad?.nombre}
-                                </option>
-                            ))}
-                        </select>
-                    </div>
+
 
                     {isEditing && (
                         <div className="flex items-center gap-2 mt-2">

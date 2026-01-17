@@ -22,8 +22,8 @@ export default function EstudiantePanel() {
                 return <MisPeriodos />;
             case 'registros':
                 return <MisRegistros />;
-            case 'certificados':
-                return <ComingSoon title="Certificados" subtitle="Pronto podrás generar y descargar tus certificados de prácticas directamente desde aquí." />;
+            case 'equipos':
+                return <ComingSoon title="Equipos" subtitle="Pronto podrás gestionar la información de equipos." />;
             case 'perfil':
                 return <MiPerfil />;
             default:
