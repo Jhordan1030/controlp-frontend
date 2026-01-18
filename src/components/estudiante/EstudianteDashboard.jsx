@@ -273,7 +273,7 @@ export default function EstudianteDashboard({ onNavigate }) {
                         <TrendingUp className="w-5 h-5 text-indigo-600" />
                         Progreso Semanal (Horas)
                     </h3>
-                    <div style={{ width: '100%', height: 250 }}>
+                    <div style={{ width: '100%', height: 250, minWidth: 0 }}>
                         <ResponsiveContainer width="100%" height="100%">
                             <BarChart data={weeklyData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
                                 <CartesianGrid strokeDasharray="3 3" vertical={false} />
