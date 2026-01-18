@@ -48,8 +48,8 @@ export default function AdminPanel() {
                 onClose={() => setSidebarOpen(false)}
             />
 
-            <main className="lg:ml-64 p-4 md:p-6 lg:p-8 w-auto">
-                <div className="max-w-7xl mx-auto">
+            <main className="lg:ml-64 p-4 md:p-6 lg:p-8">
+                <div className="w-full">
                     {renderContent()}
                 </div>
             </main>

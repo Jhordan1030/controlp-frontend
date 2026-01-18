@@ -197,7 +197,7 @@ export default function EstudianteDashboard({ onNavigate }) {
             )}
 
             {/* Stats Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
                 {/* Horas Acumuladas */}
                 <div className="bg-gradient-to-br from-violet-400 to-indigo-400 rounded-2xl p-6 text-white shadow-lg shadow-indigo-100 dark:shadow-none">
                     <div className="flex justify-between items-start mb-4">

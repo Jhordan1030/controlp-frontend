@@ -153,7 +153,7 @@ export default function AdminDashboard({ setActiveTab }) {
             )}
 
             {/* Stats Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
                 <StatCard
                     title="Total Universidades"
                     value={stats?.totalUniversidades || 0}
@@ -184,7 +184,7 @@ export default function AdminDashboard({ setActiveTab }) {
                 />
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
                 {/* Columna Izquierda: Charts & Accesos Rápidos (2/3 ancho) */}
                 <div className="lg:col-span-2 space-y-8">
                     {/* Charts Section */}
