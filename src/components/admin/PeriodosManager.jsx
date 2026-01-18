@@ -38,6 +38,13 @@ export default function PeriodosManager() {
         loading: false
     });
 
+    // Nuevo estado para reactivación
+    const [showReactivarModal, setShowReactivarModal] = useState(false);
+    const [reactivarData, setReactivarData] = useState({
+        id: null,
+        fecha_fin: ''
+    });
+
     const handleConfirmClose = () => {
         setConfirmation(prev => ({ ...prev, isOpen: false }));
     };
@@ -106,22 +113,7 @@ export default function PeriodosManager() {
         adminAPI.registrarAuditoria('DESCARGA_REPORTE', { tipo: 'PDF', modulo: 'PERIODOS' });
     };
 
-    const handleVerificarVencimiento = async () => {
-        try {
-            setLoading(true);
-            const data = await adminAPI.verificarVencimiento();
-            if (data.success) {
-                showToast(data.message || 'Verificación completada', 'success');
-                loadData();
-            } else {
-                showToast(data.error || 'Error al verificar vencimientos', 'error');
-            }
-        } catch (err) {
-            showToast(handleApiError(err), 'error');
-        } finally {
-            setLoading(false);
-        }
-    };
+
 
     const handleChange = (e) => {
         setFormData({
@@ -330,7 +322,56 @@ export default function PeriodosManager() {
         });
     };
 
+    const handleReactivarSubmit = async (e) => {
+        e.preventDefault();
+        try {
+            setLoading(true);
+            const data = await adminAPI.actualizarPeriodo(reactivarData.id, {
+                fecha_fin: reactivarData.fecha_fin,
+                activo: true
+            });
+
+            if (data.success) {
+                showToast('Periodo reactivado con nueva fecha', 'success');
+                setShowReactivarModal(false);
+                setReactivarData({ id: null, fecha_fin: '' });
+                loadData();
+            } else {
+                showToast(data.error || 'Error al reactivar', 'error');
+            }
+        } catch (err) {
+            showToast(handleApiError(err), 'error');
+        } finally {
+            setLoading(false);
+        }
+    };
+
     const handleToggleStatus = (periodo) => {
+        // Lógica de validación para reactivación
+        if (!periodo.activo) {
+            // Si vamos a ACTIVAR, verificar fecha
+            const fechaFin = new Date(periodo.fecha_fin);
+            // Ajustar fecha fin a fin del día para comparación justa o usar fecha pura
+            // Usamos comparación simple: si hoy > fechaFin, está vencido.
+            const hoy = new Date();
+            hoy.setHours(0, 0, 0, 0);
+            fechaFin.setHours(0, 0, 0, 0); // Comparar solo fechas
+
+            // Nota: fecha_fin del periodo suele ser 'YYYY-MM-DD', new Date lo parsea UTC o Local.
+            // Mejor usar la string y dividir si queremos precisión exacta de día local,
+            // pero new Date() ambos lados suele funcionar aceptablemente.
+
+            if (hoy > fechaFin) {
+                // ESTÁ VENCIDO. Pedir nueva fecha.
+                setReactivarData({
+                    id: periodo.id,
+                    fecha_fin: '' // Forzar a elegir
+                });
+                setShowReactivarModal(true);
+                return;
+            }
+        }
+
         setConfirmation({
             isOpen: true,
             title: 'Confirmar cambio de estado',
@@ -390,14 +431,7 @@ export default function PeriodosManager() {
                     <p className="text-gray-600 dark:text-gray-400 mt-1">Gestiona los periodos de prácticas</p>
                 </div>
                 <div className="flex gap-2">
-                    <button
-                        onClick={handleVerificarVencimiento}
-                        className="btn-secondary flex items-center gap-2 text-orange-600 dark:text-orange-400 hover:bg-orange-50 dark:hover:bg-orange-900/20"
-                        title="Verificar Vencimiento"
-                    >
-                        <RefreshCw className="w-5 h-5" />
-                        <span className="hidden sm:inline">Verificar</span>
-                    </button>
+
                     <button
                         onClick={handleExport}
                         className="btn-secondary flex items-center gap-2"
@@ -862,6 +896,46 @@ export default function PeriodosManager() {
                     </div>
                 </form>
             </Modal>
+            {/* Modal Reactivación (Nueva Fecha) */}
+            <Modal
+                isOpen={showReactivarModal}
+                onClose={() => setShowReactivarModal(false)}
+                title="Reactivar Periodo Vencido"
+                size="sm"
+            >
+                <form onSubmit={handleReactivarSubmit} className="space-y-4">
+                    <div className="bg-yellow-50 dark:bg-yellow-900/20 p-3 rounded-lg flex gap-3 text-sm text-yellow-800 dark:text-yellow-200 border border-yellow-200 dark:border-yellow-800">
+                        <Calendar className="w-5 h-5 flex-shrink-0" />
+                        <p>Este periodo ya ha finalizado. Para reactivarlo, debes establecer una nueva fecha de fin.</p>
+                    </div>
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                            Nueva Fecha de Fin
+                        </label>
+                        <input
+                            type="date"
+                            value={reactivarData.fecha_fin}
+                            onChange={(e) => setReactivarData({ ...reactivarData, fecha_fin: e.target.value })}
+                            className="input-field"
+                            required
+                            min={new Date().toISOString().split('T')[0]}
+                        />
+                    </div>
+                    <div className="flex justify-end gap-3 pt-2">
+                        <button
+                            type="button"
+                            onClick={() => setShowReactivarModal(false)}
+                            className="btn-secondary"
+                        >
+                            Cancelar
+                        </button>
+                        <button type="submit" className="btn-primary">
+                            Reactivar Periodo
+                        </button>
+                    </div>
+                </form>
+            </Modal>
+
             {/* Modal de Confirmación */}
             <Modal
                 isOpen={confirmation.isOpen}
