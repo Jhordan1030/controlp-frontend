@@ -218,6 +218,11 @@ export const adminAPI = {
         return data;
     },
 
+    verificarVencimiento: async () => {
+        const { data } = await api.post('/admin/periodos/verificar-vencimiento');
+        return data;
+    },
+
     // Auditoría
     getAuditoria: async (params = {}) => {
         const { data } = await api.get('/admin/auditoria', { params });

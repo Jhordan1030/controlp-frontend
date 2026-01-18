@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Calendar, Edit2, Eye, User, GraduationCap, Trash2, Filter, Search, Download, FileText, Users } from 'lucide-react';
+import { Plus, Calendar, Edit2, Eye, User, GraduationCap, Trash2, Filter, Search, Download, FileText, Users, RefreshCw } from 'lucide-react';
 import Card from '../common/Card';
 import Modal from '../common/Modal';
 import LoadingSpinner from '../common/LoadingSpinner';
@@ -104,6 +104,23 @@ export default function PeriodosManager() {
         }));
         downloadPDF(dataToExport, 'periodos_academicos.pdf', 'Reporte de Periodos Académicos');
         adminAPI.registrarAuditoria('DESCARGA_REPORTE', { tipo: 'PDF', modulo: 'PERIODOS' });
+    };
+
+    const handleVerificarVencimiento = async () => {
+        try {
+            setLoading(true);
+            const data = await adminAPI.verificarVencimiento();
+            if (data.success) {
+                showToast(data.message || 'Verificación completada', 'success');
+                loadData();
+            } else {
+                showToast(data.error || 'Error al verificar vencimientos', 'error');
+            }
+        } catch (err) {
+            showToast(handleApiError(err), 'error');
+        } finally {
+            setLoading(false);
+        }
     };
 
     const handleChange = (e) => {
@@ -373,6 +390,14 @@ export default function PeriodosManager() {
                     <p className="text-gray-600 dark:text-gray-400 mt-1">Gestiona los periodos de prácticas</p>
                 </div>
                 <div className="flex gap-2">
+                    <button
+                        onClick={handleVerificarVencimiento}
+                        className="btn-secondary flex items-center gap-2 text-orange-600 dark:text-orange-400 hover:bg-orange-50 dark:hover:bg-orange-900/20"
+                        title="Verificar Vencimiento"
+                    >
+                        <RefreshCw className="w-5 h-5" />
+                        <span className="hidden sm:inline">Verificar</span>
+                    </button>
                     <button
                         onClick={handleExport}
                         className="btn-secondary flex items-center gap-2"
