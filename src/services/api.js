@@ -218,6 +218,8 @@ export const adminAPI = {
         return data;
     },
 
+
+
     // Auditoría
     getAuditoria: async (params = {}) => {
         const { data } = await api.get('/admin/auditoria', { params });
